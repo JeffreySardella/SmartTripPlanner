@@ -37,7 +37,8 @@ The agent loop sends your request to a local LLM with tool definitions. The LLM 
 - **Travel Validation** — Haversine formula estimates travel feasibility between locations
 - **Local LLM** — Ollama with Qwen 3.5 35B-A3B MoE model, no API keys needed
 - **REST API** — `POST /api/trip/plan`, `GET /api/trip`, `GET /api/trip/{id}`
-- **SQLite Persistence** — Trip history stored locally via EF Core
+- **Location Cache** — Cache-first area search with 30-day TTL, auto-caches locations from trip events
+- **SQLite Persistence** — Trip history and cached locations stored locally via EF Core
 
 ## Prerequisites
 
@@ -115,7 +116,7 @@ Open **http://localhost:5197** in your browser. You'll see the chat interface �
 dotnet test AetherPlan.sln
 ```
 
-36 unit tests covering all services, the agent loop, and API endpoints. Tests don't require Ollama or Google Calendar.
+41 unit tests covering all services, the agent loop, and API endpoints. Tests don't require Ollama or Google Calendar.
 
 ## Project Structure
 
