@@ -10,15 +10,15 @@ public class OllamaClientTests
     [Fact]
     public async Task ChatAsync_WithToolResponse_ReturnsToolCalls()
     {
-        var expectedResponse = new OllamaChatResponse
+        var expectedResponse = new LlmChatResponse
         {
-            Message = new OllamaMessage
+            Message = new LlmMessage
             {
                 Role = "assistant",
                 Content = null,
-                ToolCalls = [new OllamaToolCall
+                ToolCalls = [new LlmToolCall
                 {
-                    Function = new OllamaFunctionCall
+                    Function = new LlmFunctionCall
                     {
                         Name = "get_calendar_view",
                         Arguments = new Dictionary<string, object>
@@ -36,7 +36,7 @@ public class OllamaClientTests
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:11434") };
         var client = new OllamaClient(httpClient, "qwen3.5:35b-a3b-q4_K_M");
 
-        var messages = new List<OllamaMessage>
+        var messages = new List<LlmMessage>
         {
             new() { Role = "user", Content = "Plan a trip to Tokyo March 10-12" }
         };
@@ -51,9 +51,9 @@ public class OllamaClientTests
     [Fact]
     public async Task ChatAsync_WithTextResponse_ReturnsContent()
     {
-        var expectedResponse = new OllamaChatResponse
+        var expectedResponse = new LlmChatResponse
         {
-            Message = new OllamaMessage { Role = "assistant", Content = "Here is your itinerary." },
+            Message = new LlmMessage { Role = "assistant", Content = "Here is your itinerary." },
             Done = true
         };
 
@@ -61,7 +61,7 @@ public class OllamaClientTests
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:11434") };
         var client = new OllamaClient(httpClient, "qwen3.5:35b-a3b-q4_K_M");
 
-        var messages = new List<OllamaMessage>
+        var messages = new List<LlmMessage>
         {
             new() { Role = "user", Content = "Summarize the plan" }
         };

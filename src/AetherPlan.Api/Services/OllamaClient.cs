@@ -4,16 +4,16 @@ using System.Text.Json;
 using AetherPlan.Api.Exceptions;
 using AetherPlan.Api.Models;
 
-public class OllamaClient(HttpClient httpClient, string model) : IOllamaClient
+public class OllamaClient(HttpClient httpClient, string model) : ILlmClient
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
-    public async Task<OllamaChatResponse> ChatAsync(List<OllamaMessage> messages, List<OllamaTool>? tools)
+    public async Task<LlmChatResponse> ChatAsync(List<LlmMessage> messages, List<LlmTool>? tools)
     {
-        var request = new OllamaChatRequest
+        var request = new LlmChatRequest
         {
             Model = model,
             Messages = messages,
@@ -31,24 +31,24 @@ public class OllamaClient(HttpClient httpClient, string model) : IOllamaClient
         }
         catch (HttpRequestException ex)
         {
-            throw new OllamaUnavailableException(
+            throw new LlmUnavailableException(
                 "Cannot connect to Ollama. Is it running on " + httpClient.BaseAddress + "?", ex);
         }
         catch (TaskCanceledException ex)
         {
-            throw new OllamaUnavailableException(
+            throw new LlmUnavailableException(
                 "Ollama request timed out. The model may be loading or the request was too complex.", ex);
         }
 
         if (!response.IsSuccessStatusCode)
         {
             var errorBody = await response.Content.ReadAsStringAsync();
-            throw new OllamaUnavailableException(
+            throw new LlmUnavailableException(
                 $"Ollama returned {(int)response.StatusCode}: {errorBody}");
         }
 
         var responseJson = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<OllamaChatResponse>(responseJson, JsonOptions)
+        return JsonSerializer.Deserialize<LlmChatResponse>(responseJson, JsonOptions)
             ?? throw new InvalidOperationException("Failed to deserialize Ollama response");
     }
 }

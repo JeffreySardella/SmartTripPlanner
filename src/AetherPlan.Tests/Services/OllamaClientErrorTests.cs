@@ -8,50 +8,50 @@ using AetherPlan.Api.Services;
 public class OllamaClientErrorTests
 {
     [Fact]
-    public async Task ChatAsync_ConnectionRefused_ThrowsOllamaUnavailableException()
+    public async Task ChatAsync_ConnectionRefused_ThrowsLlmUnavailableException()
     {
         var handler = new FaultyHttpHandler(new HttpRequestException("Connection refused"));
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:11434") };
         var client = new OllamaClient(httpClient, "test-model");
 
-        var messages = new List<OllamaMessage>
+        var messages = new List<LlmMessage>
         {
             new() { Role = "user", Content = "test" }
         };
 
-        await Assert.ThrowsAsync<OllamaUnavailableException>(
+        await Assert.ThrowsAsync<LlmUnavailableException>(
             () => client.ChatAsync(messages, tools: null));
     }
 
     [Fact]
-    public async Task ChatAsync_Timeout_ThrowsOllamaUnavailableException()
+    public async Task ChatAsync_Timeout_ThrowsLlmUnavailableException()
     {
         var handler = new FaultyHttpHandler(new TaskCanceledException("Request timed out"));
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:11434") };
         var client = new OllamaClient(httpClient, "test-model");
 
-        var messages = new List<OllamaMessage>
+        var messages = new List<LlmMessage>
         {
             new() { Role = "user", Content = "test" }
         };
 
-        await Assert.ThrowsAsync<OllamaUnavailableException>(
+        await Assert.ThrowsAsync<LlmUnavailableException>(
             () => client.ChatAsync(messages, tools: null));
     }
 
     [Fact]
-    public async Task ChatAsync_ServerError_ThrowsOllamaUnavailableException()
+    public async Task ChatAsync_ServerError_ThrowsLlmUnavailableException()
     {
         var handler = new StatusCodeHandler(HttpStatusCode.InternalServerError);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:11434") };
         var client = new OllamaClient(httpClient, "test-model");
 
-        var messages = new List<OllamaMessage>
+        var messages = new List<LlmMessage>
         {
             new() { Role = "user", Content = "test" }
         };
 
-        await Assert.ThrowsAsync<OllamaUnavailableException>(
+        await Assert.ThrowsAsync<LlmUnavailableException>(
             () => client.ChatAsync(messages, tools: null));
     }
 }
