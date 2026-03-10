@@ -24,6 +24,8 @@ builder.Services.AddHttpClient<IOllamaClient, OllamaClient>((httpClient, sp) =>
     return new OllamaClient(httpClient, model);
 });
 
+builder.Services.AddScoped<IAgentService, AgentService>();
+
 builder.Services.AddControllers();
 
 var app = builder.Build();
