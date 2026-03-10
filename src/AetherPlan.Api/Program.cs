@@ -20,9 +20,9 @@ builder.Services.AddScoped<ICalendarService, CalendarService>();
 
 builder.Services.AddHttpClient<ILlmClient, OllamaClient>((httpClient, sp) =>
 {
-    httpClient.BaseAddress = new Uri(builder.Configuration["Ollama:BaseUrl"] ?? "http://localhost:11434");
+    httpClient.BaseAddress = new Uri(builder.Configuration["Llm:Ollama:BaseUrl"] ?? "http://localhost:11434");
     httpClient.Timeout = TimeSpan.FromMinutes(5);
-    var model = builder.Configuration["Ollama:Model"] ?? "qwen3.5:35b-a3b-q4_K_M";
+    var model = builder.Configuration["Llm:Ollama:Model"] ?? "qwen3.5:35b-a3b-q4_K_M";
     return new OllamaClient(httpClient, model);
 });
 
