@@ -1,6 +1,7 @@
 namespace AetherPlan.Api.Services;
 
 using System.Text.Json;
+using AetherPlan.Api.Exceptions;
 using AetherPlan.Api.Models;
 
 public class OllamaClient(HttpClient httpClient, string model) : IOllamaClient
@@ -23,8 +24,28 @@ public class OllamaClient(HttpClient httpClient, string model) : IOllamaClient
         var json = JsonSerializer.Serialize(request, JsonOptions);
         var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
 
-        var response = await httpClient.PostAsync("/api/chat", content);
-        response.EnsureSuccessStatusCode();
+        HttpResponseMessage response;
+        try
+        {
+            response = await httpClient.PostAsync("/api/chat", content);
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new OllamaUnavailableException(
+                "Cannot connect to Ollama. Is it running on " + httpClient.BaseAddress + "?", ex);
+        }
+        catch (TaskCanceledException ex)
+        {
+            throw new OllamaUnavailableException(
+                "Ollama request timed out. The model may be loading or the request was too complex.", ex);
+        }
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync();
+            throw new OllamaUnavailableException(
+                $"Ollama returned {(int)response.StatusCode}: {errorBody}");
+        }
 
         var responseJson = await response.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<OllamaChatResponse>(responseJson, JsonOptions)
