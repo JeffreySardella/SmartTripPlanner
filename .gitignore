@@ -9,6 +9,7 @@ client_secret.json
 token.json
 *.pfx
 appsettings.Development.json
+.tokens/
 
 ## Database
 AetherPlan.db
