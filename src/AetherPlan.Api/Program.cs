@@ -1,4 +1,5 @@
 using AetherPlan.Api.Data;
+using AetherPlan.Api.Services;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -12,6 +13,8 @@ builder.Host.UseSerilog();
 builder.Services.AddDbContext<AetherPlanDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")
         ?? "Data Source=AetherPlan.db"));
+
+builder.Services.AddSingleton<ITravelService, TravelService>();
 
 builder.Services.AddControllers();
 
