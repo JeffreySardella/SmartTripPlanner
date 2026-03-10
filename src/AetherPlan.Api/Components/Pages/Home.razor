@@ -1,0 +1,62 @@
+@page "/"
+@inject IAgentService AgentService
+
+<PageTitle>AetherPlan - Chat</PageTitle>
+
+<div class="chat-container">
+    <div class="messages">
+        @foreach (var msg in _messages)
+        {
+            <div class="message @msg.Role">
+                <span class="role">@msg.Role</span>
+                <div class="content">@msg.Content</div>
+            </div>
+        }
+        @if (_isLoading)
+        {
+            <div class="message assistant">
+                <span class="role">assistant</span>
+                <div class="content loading">Thinking...</div>
+            </div>
+        }
+    </div>
+
+    <form @onsubmit="SendMessage" class="input-area">
+        <input @bind="_input" @bind:event="oninput" placeholder="Plan a trip to..." disabled="@_isLoading" />
+        <button type="submit" disabled="@(_isLoading || string.IsNullOrWhiteSpace(_input))">Send</button>
+    </form>
+</div>
+
+@code {
+    private readonly List<ChatMessage> _messages = [];
+    private string _input = string.Empty;
+    private bool _isLoading;
+
+    private async Task SendMessage()
+    {
+        if (string.IsNullOrWhiteSpace(_input)) return;
+
+        var userMessage = _input.Trim();
+        _input = string.Empty;
+
+        _messages.Add(new ChatMessage("user", userMessage));
+        _isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var response = await AgentService.RunAsync(userMessage);
+            _messages.Add(new ChatMessage("assistant", response));
+        }
+        catch (Exception ex)
+        {
+            _messages.Add(new ChatMessage("assistant", $"Error: {ex.Message}"));
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private record ChatMessage(string Role, string Content);
+}
