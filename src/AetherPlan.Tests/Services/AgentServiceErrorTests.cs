@@ -12,12 +12,13 @@ public class AgentServiceErrorTests
     private readonly IOllamaClient _ollamaClient = Substitute.For<IOllamaClient>();
     private readonly ICalendarService _calendarService = Substitute.For<ICalendarService>();
     private readonly ITravelService _travelService = Substitute.For<ITravelService>();
+    private readonly IPersistenceService _persistenceService = Substitute.For<IPersistenceService>();
     private readonly AgentService _sut;
 
     public AgentServiceErrorTests()
     {
         var logger = Substitute.For<ILogger<AgentService>>();
-        _sut = new AgentService(_ollamaClient, _calendarService, _travelService, logger);
+        _sut = new AgentService(_ollamaClient, _calendarService, _travelService, _persistenceService, logger);
     }
 
     [Fact]

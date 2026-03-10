@@ -9,6 +9,7 @@ public class AgentService(
     IOllamaClient ollamaClient,
     ICalendarService calendarService,
     ITravelService travelService,
+    IPersistenceService persistenceService,
     ILogger<AgentService> logger) : IAgentService
 {
     private const string SystemPrompt =
@@ -98,17 +99,31 @@ public class AgentService(
                 DateTime.Parse(args["departure_time"].ToString()!),
                 DateTime.Parse(args["arrival_deadline"].ToString()!)),
 
-            "add_trip_event" => await calendarService.CreateEventAsync(
-                args["summary"].ToString()!,
-                args["location"].ToString()!,
-                DateTime.Parse(args["start"].ToString()!),
-                DateTime.Parse(args["end"].ToString()!),
-                args.TryGetValue("description", out var desc) ? desc.ToString() : null),
+            "add_trip_event" => await AddTripEventWithPersistence(args),
 
             "search_area" => new { note = "search_area uses LLM internal knowledge, no external call needed",
                                    area = args["area"].ToString() },
 
             _ => new { error = $"Unknown tool: {toolCall.Function.Name}" }
         };
+    }
+
+    private async Task<object> AddTripEventWithPersistence(Dictionary<string, object> args)
+    {
+        var summary = args["summary"].ToString()!;
+        var location = args["location"].ToString()!;
+        var start = DateTime.Parse(args["start"].ToString()!);
+        var end = DateTime.Parse(args["end"].ToString()!);
+        var description = args.TryGetValue("description", out var desc) ? desc.ToString() : null;
+
+        var calendarEventId = await calendarService.CreateEventAsync(summary, location, start, end, description);
+
+        var trips = await persistenceService.GetTripsAsync();
+        var trip = trips.FirstOrDefault(t => t.Status == "draft")
+            ?? await persistenceService.CreateTripAsync(location, start, end);
+
+        await persistenceService.AddTripEventAsync(trip.Id, summary, location, 0, 0, start, end, calendarEventId);
+
+        return new { calendarEventId, summary, location, start, end };
     }
 }
