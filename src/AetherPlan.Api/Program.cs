@@ -26,6 +26,7 @@ builder.Services.AddHttpClient<IOllamaClient, OllamaClient>((httpClient, sp) =>
 });
 
 builder.Services.AddScoped<IAgentService, AgentService>();
+builder.Services.AddScoped<IPersistenceService, PersistenceService>();
 
 builder.Services.AddControllers();
 
