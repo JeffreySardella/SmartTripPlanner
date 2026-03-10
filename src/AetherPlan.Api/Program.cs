@@ -18,7 +18,7 @@ builder.Services.AddDbContext<AetherPlanDbContext>(options =>
 builder.Services.AddSingleton<ITravelService, TravelService>();
 builder.Services.AddScoped<ICalendarService, CalendarService>();
 
-builder.Services.AddHttpClient<IOllamaClient, OllamaClient>((httpClient, sp) =>
+builder.Services.AddHttpClient<ILlmClient, OllamaClient>((httpClient, sp) =>
 {
     httpClient.BaseAddress = new Uri(builder.Configuration["Ollama:BaseUrl"] ?? "http://localhost:11434");
     httpClient.Timeout = TimeSpan.FromMinutes(5);

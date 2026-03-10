@@ -6,7 +6,7 @@ using AetherPlan.Api.Models;
 using AetherPlan.Api.Tools;
 
 public class AgentService(
-    IOllamaClient ollamaClient,
+    ILlmClient llmClient,
     ICalendarService calendarService,
     ITravelService travelService,
     IPersistenceService persistenceService,
@@ -35,12 +35,12 @@ public class AgentService(
             LlmChatResponse response;
             try
             {
-                response = await ollamaClient.ChatAsync(messages, tools);
+                response = await llmClient.ChatAsync(messages, tools);
             }
             catch (OllamaUnavailableException ex)
             {
-                logger.LogError(ex, "Ollama is unavailable");
-                return $"Ollama is unavailable: {ex.Message}";
+                logger.LogError(ex, "LLM service is unavailable");
+                return $"LLM service is unavailable: {ex.Message}";
             }
 
             var message = response.Message;

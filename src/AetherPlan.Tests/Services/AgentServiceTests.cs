@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 public class AgentServiceTests
 {
-    private readonly IOllamaClient _ollamaClient = Substitute.For<IOllamaClient>();
+    private readonly ILlmClient _llmClient = Substitute.For<ILlmClient>();
     private readonly ICalendarService _calendarService = Substitute.For<ICalendarService>();
     private readonly ITravelService _travelService = Substitute.For<ITravelService>();
     private readonly IPersistenceService _persistenceService = Substitute.For<IPersistenceService>();
@@ -17,13 +17,13 @@ public class AgentServiceTests
     public AgentServiceTests()
     {
         var logger = Substitute.For<ILogger<AgentService>>();
-        _sut = new AgentService(_ollamaClient, _calendarService, _travelService, _persistenceService, logger);
+        _sut = new AgentService(_llmClient, _calendarService, _travelService, _persistenceService, logger);
     }
 
     [Fact]
     public async Task RunAsync_DirectTextResponse_ReturnsContent()
     {
-        _ollamaClient.ChatAsync(Arg.Any<List<LlmMessage>>(), Arg.Any<List<LlmTool>?>())
+        _llmClient.ChatAsync(Arg.Any<List<LlmMessage>>(), Arg.Any<List<LlmTool>?>())
             .Returns(new LlmChatResponse
             {
                 Message = new LlmMessage { Role = "assistant", Content = "Here is your plan." },
@@ -39,7 +39,7 @@ public class AgentServiceTests
     public async Task RunAsync_ToolCallThenTextResponse_ExecutesToolAndReturns()
     {
         // First call: Ollama wants to call get_calendar_view
-        _ollamaClient.ChatAsync(Arg.Any<List<LlmMessage>>(), Arg.Any<List<LlmTool>?>())
+        _llmClient.ChatAsync(Arg.Any<List<LlmMessage>>(), Arg.Any<List<LlmTool>?>())
             .Returns(
                 new LlmChatResponse
                 {
@@ -83,7 +83,7 @@ public class AgentServiceTests
     public async Task RunAsync_MaxIterationsReached_ReturnsWarning()
     {
         // Always return tool calls, never a text response
-        _ollamaClient.ChatAsync(Arg.Any<List<LlmMessage>>(), Arg.Any<List<LlmTool>?>())
+        _llmClient.ChatAsync(Arg.Any<List<LlmMessage>>(), Arg.Any<List<LlmTool>?>())
             .Returns(new LlmChatResponse
             {
                 Message = new LlmMessage
@@ -119,7 +119,7 @@ public class AgentServiceTests
 
         // First call: Ollama calls search_area
         // Second call: Ollama returns text with the results
-        _ollamaClient.ChatAsync(Arg.Any<List<LlmMessage>>(), Arg.Any<List<LlmTool>?>())
+        _llmClient.ChatAsync(Arg.Any<List<LlmMessage>>(), Arg.Any<List<LlmTool>?>())
             .Returns(
                 new LlmChatResponse
                 {

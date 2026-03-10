@@ -4,7 +4,7 @@ using System.Text.Json;
 using AetherPlan.Api.Exceptions;
 using AetherPlan.Api.Models;
 
-public class OllamaClient(HttpClient httpClient, string model) : IOllamaClient
+public class OllamaClient(HttpClient httpClient, string model) : ILlmClient
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
