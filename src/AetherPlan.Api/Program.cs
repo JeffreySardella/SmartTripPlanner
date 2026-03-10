@@ -16,7 +16,31 @@ builder.Services.AddDbContext<AetherPlanDbContext>(options =>
         ?? "Data Source=AetherPlan.db"));
 
 builder.Services.AddSingleton<ITravelService, TravelService>();
-builder.Services.AddScoped<ICalendarService, CalendarService>();
+
+var credentialPath = Path.Combine(builder.Environment.ContentRootPath,
+    builder.Configuration["GoogleCalendar:CredentialPath"] ?? "client_secret.json");
+var tokenDirectory = Path.Combine(builder.Environment.ContentRootPath,
+    builder.Configuration["GoogleCalendar:TokenDirectory"] ?? ".tokens");
+
+var calendarApi = GoogleCalendarFactory.CreateAsync(credentialPath, tokenDirectory)
+    .GetAwaiter().GetResult();
+
+if (calendarApi is not null)
+{
+    Log.Information("Google Calendar API configured successfully");
+    builder.Services.AddSingleton(calendarApi);
+}
+else
+{
+    Log.Warning("Google Calendar not configured — client_secret.json not found at {Path}. Calendar features disabled.", credentialPath);
+}
+
+builder.Services.AddScoped<ICalendarService>(sp =>
+{
+    var api = sp.GetService<Google.Apis.Calendar.v3.CalendarService>();
+    var logger = sp.GetRequiredService<ILogger<CalendarService>>();
+    return new CalendarService(api, logger);
+});
 
 builder.Services.AddHttpClient<IOllamaClient, OllamaClient>((httpClient, sp) =>
 {
