@@ -15,6 +15,7 @@ builder.Services.AddDbContext<AetherPlanDbContext>(options =>
         ?? "Data Source=AetherPlan.db"));
 
 builder.Services.AddSingleton<ITravelService, TravelService>();
+builder.Services.AddScoped<ICalendarService, CalendarService>();
 
 builder.Services.AddHttpClient<IOllamaClient, OllamaClient>((httpClient, sp) =>
 {
