@@ -18,13 +18,42 @@ builder.Services.AddDbContext<AetherPlanDbContext>(options =>
 builder.Services.AddSingleton<ITravelService, TravelService>();
 builder.Services.AddScoped<ICalendarService, CalendarService>();
 
-builder.Services.AddHttpClient<IOllamaClient, OllamaClient>((httpClient, sp) =>
+var llmProvider = builder.Configuration["Llm:Provider"]?.ToLowerInvariant() ?? "ollama";
+
+if (llmProvider == "claude")
 {
-    httpClient.BaseAddress = new Uri(builder.Configuration["Ollama:BaseUrl"] ?? "http://localhost:11434");
-    httpClient.Timeout = TimeSpan.FromMinutes(5);
-    var model = builder.Configuration["Ollama:Model"] ?? "qwen3.5:35b-a3b-q4_K_M";
-    return new OllamaClient(httpClient, model);
-});
+    var claudeApiKey = builder.Configuration["Claude:ApiKey"]
+        ?? Environment.GetEnvironmentVariable("CLAUDE_API_KEY");
+
+    if (string.IsNullOrEmpty(claudeApiKey))
+    {
+        Log.Error("Claude provider selected but no API key found. Set Claude:ApiKey via dotnet user-secrets or CLAUDE_API_KEY environment variable.");
+        throw new InvalidOperationException("Claude API key not configured.");
+    }
+
+    var claudeModel = builder.Configuration["Llm:Claude:Model"] ?? "claude-sonnet-4-6";
+    Log.Information("LLM Provider: Claude ({Model})", claudeModel);
+
+    builder.Services.AddHttpClient<ILlmClient, ClaudeClient>((httpClient, sp) =>
+    {
+        httpClient.BaseAddress = new Uri("https://api.anthropic.com");
+        httpClient.Timeout = TimeSpan.FromMinutes(5);
+        return new ClaudeClient(httpClient, claudeModel, claudeApiKey);
+    });
+}
+else
+{
+    var ollamaBaseUrl = builder.Configuration["Llm:Ollama:BaseUrl"] ?? "http://localhost:11434";
+    var ollamaModel = builder.Configuration["Llm:Ollama:Model"] ?? "qwen3.5:35b-a3b-q4_K_M";
+    Log.Information("LLM Provider: Ollama ({Model}) at {BaseUrl}", ollamaModel, ollamaBaseUrl);
+
+    builder.Services.AddHttpClient<ILlmClient, OllamaClient>((httpClient, sp) =>
+    {
+        httpClient.BaseAddress = new Uri(ollamaBaseUrl);
+        httpClient.Timeout = TimeSpan.FromMinutes(5);
+        return new OllamaClient(httpClient, ollamaModel);
+    });
+}
 
 builder.Services.AddScoped<IAgentService, AgentService>();
 builder.Services.AddScoped<IPersistenceService, PersistenceService>();

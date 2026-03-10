@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd:*)",
+      "Bash(dotnet:*)",
+      "Bash(ls:*)",
+      "Bash(cd C:\\\\Users\\\\Jeff\\\\Documents\\\\Github_new\\\\SmartTripPlanner:*)",
+      "Bash(cd /c/Users/Jeff/Documents/Github_new/SmartTripPlanner/.worktrees/google-calendar-oauth && git push -u origin feature/google-calendar-oauth 2>&1)"
+    ]
+  }
+}

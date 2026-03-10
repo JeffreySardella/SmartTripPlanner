@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 public class AgentServiceErrorTests
 {
-    private readonly IOllamaClient _ollamaClient = Substitute.For<IOllamaClient>();
+    private readonly ILlmClient _llmClient = Substitute.For<ILlmClient>();
     private readonly ICalendarService _calendarService = Substitute.For<ICalendarService>();
     private readonly ITravelService _travelService = Substitute.For<ITravelService>();
     private readonly IPersistenceService _persistenceService = Substitute.For<IPersistenceService>();
@@ -18,22 +18,22 @@ public class AgentServiceErrorTests
     public AgentServiceErrorTests()
     {
         var logger = Substitute.For<ILogger<AgentService>>();
-        _sut = new AgentService(_ollamaClient, _calendarService, _travelService, _persistenceService, logger);
+        _sut = new AgentService(_llmClient, _calendarService, _travelService, _persistenceService, logger);
     }
 
     [Fact]
     public async Task RunAsync_ToolThrows_FeedsErrorBackToOllama()
     {
-        _ollamaClient.ChatAsync(Arg.Any<List<OllamaMessage>>(), Arg.Any<List<OllamaTool>?>())
+        _llmClient.ChatAsync(Arg.Any<List<LlmMessage>>(), Arg.Any<List<LlmTool>?>())
             .Returns(
-                new OllamaChatResponse
+                new LlmChatResponse
                 {
-                    Message = new OllamaMessage
+                    Message = new LlmMessage
                     {
                         Role = "assistant",
-                        ToolCalls = [new OllamaToolCall
+                        ToolCalls = [new LlmToolCall
                         {
-                            Function = new OllamaFunctionCall
+                            Function = new LlmFunctionCall
                             {
                                 Name = "get_calendar_view",
                                 Arguments = new Dictionary<string, object>
@@ -46,9 +46,9 @@ public class AgentServiceErrorTests
                     },
                     Done = true
                 },
-                new OllamaChatResponse
+                new LlmChatResponse
                 {
-                    Message = new OllamaMessage { Role = "assistant", Content = "Sorry, calendar is unavailable." },
+                    Message = new LlmMessage { Role = "assistant", Content = "Sorry, calendar is unavailable." },
                     Done = true
                 });
 
@@ -61,30 +61,30 @@ public class AgentServiceErrorTests
     }
 
     [Fact]
-    public async Task RunAsync_OllamaUnavailable_ReturnsUserFriendlyMessage()
+    public async Task RunAsync_LlmUnavailable_ReturnsUserFriendlyMessage()
     {
-        _ollamaClient.ChatAsync(Arg.Any<List<OllamaMessage>>(), Arg.Any<List<OllamaTool>?>())
-            .ThrowsAsync(new OllamaUnavailableException("Cannot connect to Ollama"));
+        _llmClient.ChatAsync(Arg.Any<List<LlmMessage>>(), Arg.Any<List<LlmTool>?>())
+            .ThrowsAsync(new LlmUnavailableException("Cannot connect to Ollama"));
 
         var result = await _sut.RunAsync("Plan a trip");
 
-        Assert.Contains("Ollama", result);
+        Assert.Contains("LLM", result);
         Assert.Contains("unavailable", result, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
     public async Task RunAsync_BadToolArguments_FeedsParseErrorToOllama()
     {
-        _ollamaClient.ChatAsync(Arg.Any<List<OllamaMessage>>(), Arg.Any<List<OllamaTool>?>())
+        _llmClient.ChatAsync(Arg.Any<List<LlmMessage>>(), Arg.Any<List<LlmTool>?>())
             .Returns(
-                new OllamaChatResponse
+                new LlmChatResponse
                 {
-                    Message = new OllamaMessage
+                    Message = new LlmMessage
                     {
                         Role = "assistant",
-                        ToolCalls = [new OllamaToolCall
+                        ToolCalls = [new LlmToolCall
                         {
-                            Function = new OllamaFunctionCall
+                            Function = new LlmFunctionCall
                             {
                                 Name = "get_calendar_view",
                                 Arguments = new Dictionary<string, object>
@@ -97,9 +97,9 @@ public class AgentServiceErrorTests
                     },
                     Done = true
                 },
-                new OllamaChatResponse
+                new LlmChatResponse
                 {
-                    Message = new OllamaMessage { Role = "assistant", Content = "Let me try valid dates." },
+                    Message = new LlmMessage { Role = "assistant", Content = "Let me try valid dates." },
                     Done = true
                 });
 
