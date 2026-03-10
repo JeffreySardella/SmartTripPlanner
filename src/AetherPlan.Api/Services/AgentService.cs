@@ -1,6 +1,7 @@
 namespace AetherPlan.Api.Services;
 
 using System.Text.Json;
+using AetherPlan.Api.Exceptions;
 using AetherPlan.Api.Models;
 using AetherPlan.Api.Tools;
 
@@ -30,7 +31,17 @@ public class AgentService(
         {
             logger.LogInformation("Agent iteration {Iteration}", i + 1);
 
-            var response = await ollamaClient.ChatAsync(messages, tools);
+            OllamaChatResponse response;
+            try
+            {
+                response = await ollamaClient.ChatAsync(messages, tools);
+            }
+            catch (OllamaUnavailableException ex)
+            {
+                logger.LogError(ex, "Ollama is unavailable");
+                return $"Ollama is unavailable: {ex.Message}";
+            }
+
             var message = response.Message;
 
             // If no tool calls, we have a final text response
@@ -46,7 +57,17 @@ public class AgentService(
             foreach (var toolCall in message.ToolCalls)
             {
                 logger.LogInformation("Executing tool: {ToolName}", toolCall.Function.Name);
-                var result = await ExecuteToolAsync(toolCall);
+
+                object result;
+                try
+                {
+                    result = await ExecuteToolAsync(toolCall);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "Tool {ToolName} failed", toolCall.Function.Name);
+                    result = new { error = $"{toolCall.Function.Name} failed: {ex.Message}" };
+                }
 
                 messages.Add(new OllamaMessage
                 {
