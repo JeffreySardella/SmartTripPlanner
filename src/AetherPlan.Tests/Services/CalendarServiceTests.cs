@@ -11,8 +11,8 @@ public class CalendarServiceTests
     {
         var service = new TestableCalendarService(new List<Event>
         {
-            new() { Summary = "Meeting", Start = new EventDateTime { DateTime = new DateTime(2026, 3, 10, 9, 0, 0) },
-                     End = new EventDateTime { DateTime = new DateTime(2026, 3, 10, 10, 0, 0) } }
+            new() { Summary = "Meeting", Start = new EventDateTime { DateTimeDateTimeOffset = new DateTimeOffset(new DateTime(2026, 3, 10, 9, 0, 0)) },
+                     End = new EventDateTime { DateTimeDateTimeOffset = new DateTimeOffset(new DateTime(2026, 3, 10, 10, 0, 0)) } }
         });
 
         var blocks = await service.GetCalendarViewAsync(
@@ -51,7 +51,7 @@ internal class TestableCalendarService : CalendarService
     protected override Task<IList<Event>> FetchEventsAsync(DateTime start, DateTime end)
     {
         IList<Event> result = _events
-            .Where(e => e.Start.DateTime >= start && e.End.DateTime <= end)
+            .Where(e => e.Start.DateTimeDateTimeOffset?.DateTime >= start && e.End.DateTimeDateTimeOffset?.DateTime <= end)
             .ToList();
         return Task.FromResult(result);
     }

@@ -22,13 +22,13 @@ public class CalendarService : ICalendarService
         var events = await FetchEventsAsync(start, end);
         var blocks = new List<FreeBusyBlock>();
 
-        var sorted = events.OrderBy(e => e.Start.DateTime).ToList();
+        var sorted = events.OrderBy(e => e.Start.DateTimeDateTimeOffset).ToList();
 
         var cursor = start;
         foreach (var evt in sorted)
         {
-            var evtStart = evt.Start.DateTime ?? start;
-            var evtEnd = evt.End.DateTime ?? end;
+            var evtStart = evt.Start.DateTimeDateTimeOffset?.DateTime ?? start;
+            var evtEnd = evt.End.DateTimeDateTimeOffset?.DateTime ?? end;
 
             if (cursor < evtStart)
             {
@@ -57,8 +57,8 @@ public class CalendarService : ICalendarService
             Summary = summary,
             Location = location,
             Description = description,
-            Start = new EventDateTime { DateTime = start },
-            End = new EventDateTime { DateTime = end }
+            Start = new EventDateTime { DateTimeDateTimeOffset = new DateTimeOffset(start) },
+            End = new EventDateTime { DateTimeDateTimeOffset = new DateTimeOffset(end) }
         };
 
         var request = _calendarApi.Events.Insert(calendarEvent, "primary");
