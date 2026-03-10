@@ -4,13 +4,25 @@ using System.Text.Json;
 using AetherPlan.Api.Exceptions;
 using AetherPlan.Api.Models;
 
-public class ClaudeClient(HttpClient httpClient, string model, string apiKey) : ILlmClient
+public class ClaudeClient : ILlmClient
 {
+    private readonly HttpClient _httpClient;
+    private readonly string _model;
+    private readonly string _apiKey;
+
+    public ClaudeClient(HttpClient httpClient, string model, string apiKey)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(apiKey, nameof(apiKey));
+        _httpClient = httpClient;
+        _model = model;
+        _apiKey = apiKey;
+    }
+
     public async Task<LlmChatResponse> ChatAsync(List<LlmMessage> messages, List<LlmTool>? tools)
     {
         var requestBody = new Dictionary<string, object?>
         {
-            ["model"] = model,
+            ["model"] = _model,
             ["max_tokens"] = 4096,
             ["messages"] = ConvertMessages(messages)
         };
@@ -25,14 +37,15 @@ public class ClaudeClient(HttpClient httpClient, string model, string apiKey) : 
         var json = JsonSerializer.Serialize(requestBody);
         var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
 
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/v1/messages");
+        request.Content = content;
+        request.Headers.Add("x-api-key", _apiKey);
+        request.Headers.Add("anthropic-version", "2023-06-01");
+
         HttpResponseMessage response;
         try
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, "/v1/messages");
-            request.Content = content;
-            request.Headers.Add("x-api-key", apiKey);
-            request.Headers.Add("anthropic-version", "2023-06-01");
-            response = await httpClient.SendAsync(request);
+            response = await _httpClient.SendAsync(request);
         }
         catch (HttpRequestException ex)
         {
@@ -43,15 +56,18 @@ public class ClaudeClient(HttpClient httpClient, string model, string apiKey) : 
             throw new LlmUnavailableException("Claude API request timed out.", ex);
         }
 
-        if (!response.IsSuccessStatusCode)
+        using (response)
         {
-            var errorBody = await response.Content.ReadAsStringAsync();
-            throw new LlmUnavailableException(
-                $"Claude API returned {(int)response.StatusCode}: {errorBody}");
-        }
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorBody = await response.Content.ReadAsStringAsync();
+                throw new LlmUnavailableException(
+                    $"Claude API returned {(int)response.StatusCode}: {errorBody}");
+            }
 
-        var responseJson = await response.Content.ReadAsStringAsync();
-        return ParseResponse(responseJson);
+            var responseJson = await response.Content.ReadAsStringAsync();
+            return ParseResponse(responseJson);
+        }
     }
 
     internal static string? ExtractSystemPrompt(List<LlmMessage> messages)
