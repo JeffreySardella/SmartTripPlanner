@@ -101,8 +101,7 @@ public class AgentService(
 
             "add_trip_event" => await AddTripEventWithPersistence(args),
 
-            "search_area" => new { note = "search_area uses LLM internal knowledge, no external call needed",
-                                   area = args["area"].ToString() },
+            "search_area" => await SearchAreaAsync(args),
 
             _ => new { error = $"Unknown tool: {toolCall.Function.Name}" }
         };
@@ -115,6 +114,8 @@ public class AgentService(
         var start = DateTime.Parse(args["start"].ToString()!);
         var end = DateTime.Parse(args["end"].ToString()!);
         var description = args.TryGetValue("description", out var desc) ? desc.ToString() : null;
+        var latitude = args.TryGetValue("latitude", out var lat) ? Convert.ToDouble(lat) : 0.0;
+        var longitude = args.TryGetValue("longitude", out var lng) ? Convert.ToDouble(lng) : 0.0;
 
         var calendarEventId = await calendarService.CreateEventAsync(summary, location, start, end, description);
 
@@ -122,8 +123,45 @@ public class AgentService(
         var trip = trips.FirstOrDefault(t => t.Status == "draft")
             ?? await persistenceService.CreateTripAsync(location, start, end);
 
-        await persistenceService.AddTripEventAsync(trip.Id, summary, location, 0, 0, start, end, calendarEventId);
+        await persistenceService.AddTripEventAsync(trip.Id, summary, location, latitude, longitude, start, end, calendarEventId);
 
-        return new { calendarEventId, summary, location, start, end };
+        if (latitude != 0.0 || longitude != 0.0)
+        {
+            await persistenceService.CacheLocationsAsync([
+                new CachedLocation
+                {
+                    Name = location,
+                    Latitude = latitude,
+                    Longitude = longitude,
+                    Category = "general"
+                }
+            ]);
+        }
+
+        return new { calendarEventId, summary, location, start, end, latitude, longitude };
+    }
+
+    private async Task<object> SearchAreaAsync(Dictionary<string, object> args)
+    {
+        var area = args["area"].ToString()!;
+        var category = args.TryGetValue("category", out var cat) ? cat.ToString() : null;
+        var limit = args.TryGetValue("limit", out var lim) ? Convert.ToInt32(lim) : 5;
+
+        var cached = await persistenceService.SearchCachedLocationsAsync(area, category);
+
+        if (cached.Count > 0)
+        {
+            var results = cached.Take(limit).Select(l => new
+            {
+                l.Name, l.Latitude, l.Longitude, l.Category
+            });
+            return new { cached = true, locations = results };
+        }
+
+        return new
+        {
+            cached = false, area, category,
+            hint = "No cached locations found. Please suggest places with their coordinates."
+        };
     }
 }

@@ -53,4 +53,49 @@ public class PersistenceService(AetherPlanDbContext db) : IPersistenceService
             .Include(t => t.Events)
             .FirstOrDefaultAsync(t => t.Id == id);
     }
+
+    public async Task<List<CachedLocation>> SearchCachedLocationsAsync(string area, string? category = null)
+    {
+        var cutoff = DateTime.UtcNow.AddDays(-30);
+
+        var query = db.CachedLocations
+            .Where(l => l.LastUpdated > cutoff);
+
+        if (!string.IsNullOrWhiteSpace(area))
+            query = query.Where(l => l.Name.Contains(area));
+
+        if (!string.IsNullOrWhiteSpace(category))
+            query = query.Where(l => l.Category == category);
+
+        return await query.OrderBy(l => l.Name).ToListAsync();
+    }
+
+    public async Task CacheLocationsAsync(List<CachedLocation> locations)
+    {
+        foreach (var location in locations)
+        {
+            var existing = await db.CachedLocations
+                .FirstOrDefaultAsync(l => l.Name == location.Name && l.Category == location.Category);
+
+            if (existing is not null)
+            {
+                existing.Latitude = location.Latitude;
+                existing.Longitude = location.Longitude;
+                existing.LastUpdated = DateTime.UtcNow;
+            }
+            else
+            {
+                location.LastUpdated = DateTime.UtcNow;
+                db.CachedLocations.Add(location);
+            }
+        }
+
+        await db.SaveChangesAsync();
+    }
+
+    public async Task<CachedLocation?> GetCachedLocationByNameAsync(string name)
+    {
+        return await db.CachedLocations
+            .FirstOrDefaultAsync(l => l.Name == name);
+    }
 }

@@ -76,4 +76,82 @@ public class PersistenceServiceTests : IDisposable
 
         Assert.Null(result);
     }
+
+    [Fact]
+    public async Task SearchCachedLocationsAsync_MatchingArea_ReturnsResults()
+    {
+        _db.CachedLocations.Add(new CachedLocation
+        {
+            Name = "Tokyo Tower", Latitude = 35.6586, Longitude = 139.7454,
+            Category = "attractions", LastUpdated = DateTime.UtcNow
+        });
+        _db.CachedLocations.Add(new CachedLocation
+        {
+            Name = "Shibuya Crossing", Latitude = 35.6595, Longitude = 139.7004,
+            Category = "attractions", LastUpdated = DateTime.UtcNow
+        });
+        await _db.SaveChangesAsync();
+
+        var results = await _sut.SearchCachedLocationsAsync("Tokyo");
+
+        Assert.Single(results);
+        Assert.Equal("Tokyo Tower", results[0].Name);
+    }
+
+    [Fact]
+    public async Task SearchCachedLocationsAsync_StaleEntries_ExcludesOlderThan30Days()
+    {
+        _db.CachedLocations.Add(new CachedLocation
+        {
+            Name = "Old Tokyo Spot", Latitude = 35.68, Longitude = 139.76,
+            Category = "attractions", LastUpdated = DateTime.UtcNow.AddDays(-31)
+        });
+        _db.CachedLocations.Add(new CachedLocation
+        {
+            Name = "New Tokyo Spot", Latitude = 35.69, Longitude = 139.77,
+            Category = "attractions", LastUpdated = DateTime.UtcNow
+        });
+        await _db.SaveChangesAsync();
+
+        var results = await _sut.SearchCachedLocationsAsync("Tokyo");
+
+        Assert.Single(results);
+        Assert.Equal("New Tokyo Spot", results[0].Name);
+    }
+
+    [Fact]
+    public async Task SearchCachedLocationsAsync_WithCategory_FiltersCorrectly()
+    {
+        _db.CachedLocations.Add(new CachedLocation
+        {
+            Name = "Sushi Dai", Latitude = 35.66, Longitude = 139.77,
+            Category = "restaurants", LastUpdated = DateTime.UtcNow
+        });
+        _db.CachedLocations.Add(new CachedLocation
+        {
+            Name = "Senso-ji Temple", Latitude = 35.71, Longitude = 139.79,
+            Category = "attractions", LastUpdated = DateTime.UtcNow
+        });
+        await _db.SaveChangesAsync();
+
+        var results = await _sut.SearchCachedLocationsAsync("", "restaurants");
+
+        Assert.Single(results);
+        Assert.Equal("Sushi Dai", results[0].Name);
+    }
+
+    [Fact]
+    public async Task CacheLocationsAsync_NewLocations_PersistsToDb()
+    {
+        var locations = new List<CachedLocation>
+        {
+            new() { Name = "Fushimi Inari", Latitude = 34.9671, Longitude = 135.7727, Category = "attractions" }
+        };
+
+        await _sut.CacheLocationsAsync(locations);
+
+        var saved = await _db.CachedLocations.FirstOrDefaultAsync(l => l.Name == "Fushimi Inari");
+        Assert.NotNull(saved);
+        Assert.Equal(34.9671, saved!.Latitude);
+    }
 }
