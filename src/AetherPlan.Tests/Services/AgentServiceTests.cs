@@ -105,4 +105,47 @@ public class AgentServiceTests
 
         Assert.Contains("max iterations", result, StringComparison.OrdinalIgnoreCase);
     }
+
+    [Fact]
+    public async Task RunAsync_SearchAreaWithCachedResults_ReturnsCachedLocations()
+    {
+        var cachedLocations = new List<CachedLocation>
+        {
+            new() { Id = 1, Name = "Tokyo Tower", Latitude = 35.6586, Longitude = 139.7454, Category = "attractions" }
+        };
+
+        _persistenceService.SearchCachedLocationsAsync("Tokyo", null)
+            .Returns(cachedLocations);
+
+        // First call: Ollama calls search_area
+        // Second call: Ollama returns text with the results
+        _ollamaClient.ChatAsync(Arg.Any<List<OllamaMessage>>(), Arg.Any<List<OllamaTool>?>())
+            .Returns(
+                new OllamaChatResponse
+                {
+                    Message = new OllamaMessage
+                    {
+                        Role = "assistant",
+                        ToolCalls = [new OllamaToolCall
+                        {
+                            Function = new OllamaFunctionCall
+                            {
+                                Name = "search_area",
+                                Arguments = new Dictionary<string, object> { ["area"] = "Tokyo" }
+                            }
+                        }]
+                    },
+                    Done = true
+                },
+                new OllamaChatResponse
+                {
+                    Message = new OllamaMessage { Role = "assistant", Content = "Found Tokyo Tower!" },
+                    Done = true
+                });
+
+        var result = await _sut.RunAsync("What's in Tokyo?");
+
+        Assert.Equal("Found Tokyo Tower!", result);
+        await _persistenceService.Received(1).SearchCachedLocationsAsync("Tokyo", null);
+    }
 }

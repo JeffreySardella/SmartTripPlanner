@@ -61,7 +61,9 @@ public static class ToolDefinitions
                         location = new { type = "string", description = "Event location name or address" },
                         start = new { type = "string", description = "ISO 8601 start time" },
                         end = new { type = "string", description = "ISO 8601 end time" },
-                        description = new { type = "string", description = "Event description (optional)" }
+                        description = new { type = "string", description = "Event description (optional)" },
+                        latitude = new { type = "number", description = "Location latitude (optional)" },
+                        longitude = new { type = "number", description = "Location longitude (optional)" }
                     },
                     required = new[] { "summary", "location", "start", "end" }
                 }

@@ -18,6 +18,9 @@ AetherPlan.db
 *.swp
 *~
 
+## Worktrees
+.worktrees/
+
 ## OS
 Thumbs.db
 .DS_Store
