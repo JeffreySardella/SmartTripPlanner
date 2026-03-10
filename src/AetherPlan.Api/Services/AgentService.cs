@@ -73,7 +73,8 @@ public class AgentService(
                 messages.Add(new LlmMessage
                 {
                     Role = "tool",
-                    Content = JsonSerializer.Serialize(result)
+                    Content = JsonSerializer.Serialize(result),
+                    ToolCallId = toolCall.Id
                 });
             }
         }
