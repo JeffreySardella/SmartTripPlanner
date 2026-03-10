@@ -1,3 +1,4 @@
+using AetherPlan.Api.Components;
 using AetherPlan.Api.Data;
 using AetherPlan.Api.Services;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +31,17 @@ builder.Services.AddScoped<IPersistenceService, PersistenceService>();
 
 builder.Services.AddControllers();
 
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
+
 var app = builder.Build();
+
+app.UseStaticFiles();
+app.UseAntiforgery();
+
 app.MapControllers();
+
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
+
 app.Run();
