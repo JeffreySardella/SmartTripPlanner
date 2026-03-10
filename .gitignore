@@ -1,0 +1,23 @@
+## .NET
+bin/
+obj/
+.vs/
+*.user
+
+## Secrets & credentials
+client_secret.json
+token.json
+*.pfx
+appsettings.Development.json
+
+## Database
+AetherPlan.db
+
+## IDE
+*.suo
+*.swp
+*~
+
+## OS
+Thumbs.db
+.DS_Store
