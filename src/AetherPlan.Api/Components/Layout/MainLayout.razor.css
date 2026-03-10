@@ -27,3 +27,19 @@
 main {
     min-height: 80vh;
 }
+
+nav {
+    margin-left: auto;
+    display: flex;
+    gap: 1rem;
+}
+
+nav a {
+    color: #1976d2;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+nav a:hover {
+    text-decoration: underline;
+}
