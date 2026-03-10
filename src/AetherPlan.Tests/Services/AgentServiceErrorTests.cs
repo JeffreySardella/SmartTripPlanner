@@ -24,16 +24,16 @@ public class AgentServiceErrorTests
     [Fact]
     public async Task RunAsync_ToolThrows_FeedsErrorBackToOllama()
     {
-        _ollamaClient.ChatAsync(Arg.Any<List<OllamaMessage>>(), Arg.Any<List<OllamaTool>?>())
+        _ollamaClient.ChatAsync(Arg.Any<List<LlmMessage>>(), Arg.Any<List<LlmTool>?>())
             .Returns(
-                new OllamaChatResponse
+                new LlmChatResponse
                 {
-                    Message = new OllamaMessage
+                    Message = new LlmMessage
                     {
                         Role = "assistant",
-                        ToolCalls = [new OllamaToolCall
+                        ToolCalls = [new LlmToolCall
                         {
-                            Function = new OllamaFunctionCall
+                            Function = new LlmFunctionCall
                             {
                                 Name = "get_calendar_view",
                                 Arguments = new Dictionary<string, object>
@@ -46,9 +46,9 @@ public class AgentServiceErrorTests
                     },
                     Done = true
                 },
-                new OllamaChatResponse
+                new LlmChatResponse
                 {
-                    Message = new OllamaMessage { Role = "assistant", Content = "Sorry, calendar is unavailable." },
+                    Message = new LlmMessage { Role = "assistant", Content = "Sorry, calendar is unavailable." },
                     Done = true
                 });
 
@@ -63,7 +63,7 @@ public class AgentServiceErrorTests
     [Fact]
     public async Task RunAsync_OllamaUnavailable_ReturnsUserFriendlyMessage()
     {
-        _ollamaClient.ChatAsync(Arg.Any<List<OllamaMessage>>(), Arg.Any<List<OllamaTool>?>())
+        _ollamaClient.ChatAsync(Arg.Any<List<LlmMessage>>(), Arg.Any<List<LlmTool>?>())
             .ThrowsAsync(new OllamaUnavailableException("Cannot connect to Ollama"));
 
         var result = await _sut.RunAsync("Plan a trip");
@@ -75,16 +75,16 @@ public class AgentServiceErrorTests
     [Fact]
     public async Task RunAsync_BadToolArguments_FeedsParseErrorToOllama()
     {
-        _ollamaClient.ChatAsync(Arg.Any<List<OllamaMessage>>(), Arg.Any<List<OllamaTool>?>())
+        _ollamaClient.ChatAsync(Arg.Any<List<LlmMessage>>(), Arg.Any<List<LlmTool>?>())
             .Returns(
-                new OllamaChatResponse
+                new LlmChatResponse
                 {
-                    Message = new OllamaMessage
+                    Message = new LlmMessage
                     {
                         Role = "assistant",
-                        ToolCalls = [new OllamaToolCall
+                        ToolCalls = [new LlmToolCall
                         {
-                            Function = new OllamaFunctionCall
+                            Function = new LlmFunctionCall
                             {
                                 Name = "get_calendar_view",
                                 Arguments = new Dictionary<string, object>
@@ -97,9 +97,9 @@ public class AgentServiceErrorTests
                     },
                     Done = true
                 },
-                new OllamaChatResponse
+                new LlmChatResponse
                 {
-                    Message = new OllamaMessage { Role = "assistant", Content = "Let me try valid dates." },
+                    Message = new LlmMessage { Role = "assistant", Content = "Let me try valid dates." },
                     Done = true
                 });
 

@@ -11,9 +11,9 @@ public class OllamaClient(HttpClient httpClient, string model) : IOllamaClient
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
-    public async Task<OllamaChatResponse> ChatAsync(List<OllamaMessage> messages, List<OllamaTool>? tools)
+    public async Task<LlmChatResponse> ChatAsync(List<LlmMessage> messages, List<LlmTool>? tools)
     {
-        var request = new OllamaChatRequest
+        var request = new LlmChatRequest
         {
             Model = model,
             Messages = messages,
@@ -48,7 +48,7 @@ public class OllamaClient(HttpClient httpClient, string model) : IOllamaClient
         }
 
         var responseJson = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<OllamaChatResponse>(responseJson, JsonOptions)
+        return JsonSerializer.Deserialize<LlmChatResponse>(responseJson, JsonOptions)
             ?? throw new InvalidOperationException("Failed to deserialize Ollama response");
     }
 }

@@ -23,10 +23,10 @@ public class AgentServiceTests
     [Fact]
     public async Task RunAsync_DirectTextResponse_ReturnsContent()
     {
-        _ollamaClient.ChatAsync(Arg.Any<List<OllamaMessage>>(), Arg.Any<List<OllamaTool>?>())
-            .Returns(new OllamaChatResponse
+        _ollamaClient.ChatAsync(Arg.Any<List<LlmMessage>>(), Arg.Any<List<LlmTool>?>())
+            .Returns(new LlmChatResponse
             {
-                Message = new OllamaMessage { Role = "assistant", Content = "Here is your plan." },
+                Message = new LlmMessage { Role = "assistant", Content = "Here is your plan." },
                 Done = true
             });
 
@@ -39,16 +39,16 @@ public class AgentServiceTests
     public async Task RunAsync_ToolCallThenTextResponse_ExecutesToolAndReturns()
     {
         // First call: Ollama wants to call get_calendar_view
-        _ollamaClient.ChatAsync(Arg.Any<List<OllamaMessage>>(), Arg.Any<List<OllamaTool>?>())
+        _ollamaClient.ChatAsync(Arg.Any<List<LlmMessage>>(), Arg.Any<List<LlmTool>?>())
             .Returns(
-                new OllamaChatResponse
+                new LlmChatResponse
                 {
-                    Message = new OllamaMessage
+                    Message = new LlmMessage
                     {
                         Role = "assistant",
-                        ToolCalls = [new OllamaToolCall
+                        ToolCalls = [new LlmToolCall
                         {
-                            Function = new OllamaFunctionCall
+                            Function = new LlmFunctionCall
                             {
                                 Name = "get_calendar_view",
                                 Arguments = new Dictionary<string, object>
@@ -61,9 +61,9 @@ public class AgentServiceTests
                     },
                     Done = true
                 },
-                new OllamaChatResponse
+                new LlmChatResponse
                 {
-                    Message = new OllamaMessage { Role = "assistant", Content = "You're free all day!" },
+                    Message = new LlmMessage { Role = "assistant", Content = "You're free all day!" },
                     Done = true
                 });
 
@@ -83,15 +83,15 @@ public class AgentServiceTests
     public async Task RunAsync_MaxIterationsReached_ReturnsWarning()
     {
         // Always return tool calls, never a text response
-        _ollamaClient.ChatAsync(Arg.Any<List<OllamaMessage>>(), Arg.Any<List<OllamaTool>?>())
-            .Returns(new OllamaChatResponse
+        _ollamaClient.ChatAsync(Arg.Any<List<LlmMessage>>(), Arg.Any<List<LlmTool>?>())
+            .Returns(new LlmChatResponse
             {
-                Message = new OllamaMessage
+                Message = new LlmMessage
                 {
                     Role = "assistant",
-                    ToolCalls = [new OllamaToolCall
+                    ToolCalls = [new LlmToolCall
                     {
-                        Function = new OllamaFunctionCall
+                        Function = new LlmFunctionCall
                         {
                             Name = "search_area",
                             Arguments = new Dictionary<string, object> { ["area"] = "Tokyo" }
@@ -119,16 +119,16 @@ public class AgentServiceTests
 
         // First call: Ollama calls search_area
         // Second call: Ollama returns text with the results
-        _ollamaClient.ChatAsync(Arg.Any<List<OllamaMessage>>(), Arg.Any<List<OllamaTool>?>())
+        _ollamaClient.ChatAsync(Arg.Any<List<LlmMessage>>(), Arg.Any<List<LlmTool>?>())
             .Returns(
-                new OllamaChatResponse
+                new LlmChatResponse
                 {
-                    Message = new OllamaMessage
+                    Message = new LlmMessage
                     {
                         Role = "assistant",
-                        ToolCalls = [new OllamaToolCall
+                        ToolCalls = [new LlmToolCall
                         {
-                            Function = new OllamaFunctionCall
+                            Function = new LlmFunctionCall
                             {
                                 Name = "search_area",
                                 Arguments = new Dictionary<string, object> { ["area"] = "Tokyo" }
@@ -137,9 +137,9 @@ public class AgentServiceTests
                     },
                     Done = true
                 },
-                new OllamaChatResponse
+                new LlmChatResponse
                 {
-                    Message = new OllamaMessage { Role = "assistant", Content = "Found Tokyo Tower!" },
+                    Message = new LlmMessage { Role = "assistant", Content = "Found Tokyo Tower!" },
                     Done = true
                 });
 

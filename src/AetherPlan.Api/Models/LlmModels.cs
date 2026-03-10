@@ -2,22 +2,22 @@ namespace AetherPlan.Api.Models;
 
 using System.Text.Json.Serialization;
 
-public class OllamaChatRequest
+public class LlmChatRequest
 {
     [JsonPropertyName("model")]
     public required string Model { get; set; }
 
     [JsonPropertyName("messages")]
-    public required List<OllamaMessage> Messages { get; set; }
+    public required List<LlmMessage> Messages { get; set; }
 
     [JsonPropertyName("tools")]
-    public List<OllamaTool>? Tools { get; set; }
+    public List<LlmTool>? Tools { get; set; }
 
     [JsonPropertyName("stream")]
     public bool Stream { get; set; } = false;
 }
 
-public class OllamaMessage
+public class LlmMessage
 {
     [JsonPropertyName("role")]
     public required string Role { get; set; }
@@ -26,19 +26,22 @@ public class OllamaMessage
     public string? Content { get; set; }
 
     [JsonPropertyName("tool_calls")]
-    public List<OllamaToolCall>? ToolCalls { get; set; }
+    public List<LlmToolCall>? ToolCalls { get; set; }
+
+    [JsonIgnore]
+    public string? ToolCallId { get; set; }
 }
 
-public class OllamaTool
+public class LlmTool
 {
     [JsonPropertyName("type")]
     public string Type { get; set; } = "function";
 
     [JsonPropertyName("function")]
-    public required OllamaFunction Function { get; set; }
+    public required LlmFunction Function { get; set; }
 }
 
-public class OllamaFunction
+public class LlmFunction
 {
     [JsonPropertyName("name")]
     public required string Name { get; set; }
@@ -50,13 +53,17 @@ public class OllamaFunction
     public required object Parameters { get; set; }
 }
 
-public class OllamaToolCall
+public class LlmToolCall
 {
+    [JsonPropertyName("id")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Id { get; set; }
+
     [JsonPropertyName("function")]
-    public required OllamaFunctionCall Function { get; set; }
+    public required LlmFunctionCall Function { get; set; }
 }
 
-public class OllamaFunctionCall
+public class LlmFunctionCall
 {
     [JsonPropertyName("name")]
     public required string Name { get; set; }
@@ -65,10 +72,10 @@ public class OllamaFunctionCall
     public required Dictionary<string, object> Arguments { get; set; }
 }
 
-public class OllamaChatResponse
+public class LlmChatResponse
 {
     [JsonPropertyName("message")]
-    public required OllamaMessage Message { get; set; }
+    public required LlmMessage Message { get; set; }
 
     [JsonPropertyName("done")]
     public bool Done { get; set; }

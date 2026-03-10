@@ -18,16 +18,16 @@ public class AgentServicePersistenceTests
 
         var sut = new AgentService(ollamaClient, calendarService, travelService, persistenceService, logger);
 
-        ollamaClient.ChatAsync(Arg.Any<List<OllamaMessage>>(), Arg.Any<List<OllamaTool>?>())
+        ollamaClient.ChatAsync(Arg.Any<List<LlmMessage>>(), Arg.Any<List<LlmTool>?>())
             .Returns(
-                new OllamaChatResponse
+                new LlmChatResponse
                 {
-                    Message = new OllamaMessage
+                    Message = new LlmMessage
                     {
                         Role = "assistant",
-                        ToolCalls = [new OllamaToolCall
+                        ToolCalls = [new LlmToolCall
                         {
-                            Function = new OllamaFunctionCall
+                            Function = new LlmFunctionCall
                             {
                                 Name = "add_trip_event",
                                 Arguments = new Dictionary<string, object>
@@ -42,9 +42,9 @@ public class AgentServicePersistenceTests
                     },
                     Done = true
                 },
-                new OllamaChatResponse
+                new LlmChatResponse
                 {
-                    Message = new OllamaMessage { Role = "assistant", Content = "Event added!" },
+                    Message = new LlmMessage { Role = "assistant", Content = "Event added!" },
                     Done = true
                 });
 

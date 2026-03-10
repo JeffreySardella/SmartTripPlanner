@@ -14,7 +14,7 @@ public class OllamaClientErrorTests
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:11434") };
         var client = new OllamaClient(httpClient, "test-model");
 
-        var messages = new List<OllamaMessage>
+        var messages = new List<LlmMessage>
         {
             new() { Role = "user", Content = "test" }
         };
@@ -30,7 +30,7 @@ public class OllamaClientErrorTests
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:11434") };
         var client = new OllamaClient(httpClient, "test-model");
 
-        var messages = new List<OllamaMessage>
+        var messages = new List<LlmMessage>
         {
             new() { Role = "user", Content = "test" }
         };
@@ -46,7 +46,7 @@ public class OllamaClientErrorTests
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:11434") };
         var client = new OllamaClient(httpClient, "test-model");
 
-        var messages = new List<OllamaMessage>
+        var messages = new List<LlmMessage>
         {
             new() { Role = "user", Content = "test" }
         };

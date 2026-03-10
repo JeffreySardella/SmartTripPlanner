@@ -4,11 +4,11 @@ using AetherPlan.Api.Models;
 
 public static class ToolDefinitions
 {
-    public static List<OllamaTool> GetAllTools() =>
+    public static List<LlmTool> GetAllTools() =>
     [
-        new OllamaTool
+        new LlmTool
         {
-            Function = new OllamaFunction
+            Function = new LlmFunction
             {
                 Name = "get_calendar_view",
                 Description = "Returns free/busy time blocks for a date range from Google Calendar",
@@ -24,9 +24,9 @@ public static class ToolDefinitions
                 }
             }
         },
-        new OllamaTool
+        new LlmTool
         {
-            Function = new OllamaFunction
+            Function = new LlmFunction
             {
                 Name = "validate_travel",
                 Description = "Checks if travel between two locations is feasible given departure time and arrival deadline",
@@ -46,9 +46,9 @@ public static class ToolDefinitions
                 }
             }
         },
-        new OllamaTool
+        new LlmTool
         {
-            Function = new OllamaFunction
+            Function = new LlmFunction
             {
                 Name = "add_trip_event",
                 Description = "Creates a Google Calendar event with location and description",
@@ -69,9 +69,9 @@ public static class ToolDefinitions
                 }
             }
         },
-        new OllamaTool
+        new LlmTool
         {
-            Function = new OllamaFunction
+            Function = new LlmFunction
             {
                 Name = "search_area",
                 Description = "Uses internal knowledge to suggest attractions, restaurants, and activities in a given area",

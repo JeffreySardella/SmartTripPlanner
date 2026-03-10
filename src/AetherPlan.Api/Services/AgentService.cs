@@ -20,7 +20,7 @@ public class AgentService(
 
     public async Task<string> RunAsync(string userRequest, int maxIterations = 10)
     {
-        var messages = new List<OllamaMessage>
+        var messages = new List<LlmMessage>
         {
             new() { Role = "system", Content = SystemPrompt },
             new() { Role = "user", Content = userRequest }
@@ -32,7 +32,7 @@ public class AgentService(
         {
             logger.LogInformation("Agent iteration {Iteration}", i + 1);
 
-            OllamaChatResponse response;
+            LlmChatResponse response;
             try
             {
                 response = await ollamaClient.ChatAsync(messages, tools);
@@ -70,7 +70,7 @@ public class AgentService(
                     result = new { error = $"{toolCall.Function.Name} failed: {ex.Message}" };
                 }
 
-                messages.Add(new OllamaMessage
+                messages.Add(new LlmMessage
                 {
                     Role = "tool",
                     Content = JsonSerializer.Serialize(result)
@@ -81,7 +81,7 @@ public class AgentService(
         return "Agent reached max iterations without completing. Please try a more specific request.";
     }
 
-    private async Task<object> ExecuteToolAsync(OllamaToolCall toolCall)
+    private async Task<object> ExecuteToolAsync(LlmToolCall toolCall)
     {
         var args = toolCall.Function.Arguments;
 
