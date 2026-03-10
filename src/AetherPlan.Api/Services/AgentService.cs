@@ -37,7 +37,7 @@ public class AgentService(
             {
                 response = await llmClient.ChatAsync(messages, tools);
             }
-            catch (OllamaUnavailableException ex)
+            catch (LlmUnavailableException ex)
             {
                 logger.LogError(ex, "LLM service is unavailable");
                 return $"LLM service is unavailable: {ex.Message}";

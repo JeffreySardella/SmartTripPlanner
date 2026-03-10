@@ -31,19 +31,19 @@ public class OllamaClient(HttpClient httpClient, string model) : ILlmClient
         }
         catch (HttpRequestException ex)
         {
-            throw new OllamaUnavailableException(
+            throw new LlmUnavailableException(
                 "Cannot connect to Ollama. Is it running on " + httpClient.BaseAddress + "?", ex);
         }
         catch (TaskCanceledException ex)
         {
-            throw new OllamaUnavailableException(
+            throw new LlmUnavailableException(
                 "Ollama request timed out. The model may be loading or the request was too complex.", ex);
         }
 
         if (!response.IsSuccessStatusCode)
         {
             var errorBody = await response.Content.ReadAsStringAsync();
-            throw new OllamaUnavailableException(
+            throw new LlmUnavailableException(
                 $"Ollama returned {(int)response.StatusCode}: {errorBody}");
         }
 

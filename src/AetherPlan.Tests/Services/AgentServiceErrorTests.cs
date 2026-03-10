@@ -64,7 +64,7 @@ public class AgentServiceErrorTests
     public async Task RunAsync_LlmUnavailable_ReturnsUserFriendlyMessage()
     {
         _llmClient.ChatAsync(Arg.Any<List<LlmMessage>>(), Arg.Any<List<LlmTool>?>())
-            .ThrowsAsync(new OllamaUnavailableException("Cannot connect to Ollama"));
+            .ThrowsAsync(new LlmUnavailableException("Cannot connect to Ollama"));
 
         var result = await _sut.RunAsync("Plan a trip");
 
