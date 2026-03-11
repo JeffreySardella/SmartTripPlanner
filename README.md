@@ -36,7 +36,8 @@ The agent loop sends your request to a local LLM with tool definitions. The LLM 
 - **Google Calendar Integration** — Reads free/busy slots and creates events
 - **Travel Validation** — Haversine formula estimates travel feasibility between locations
 - **Local LLM** — Ollama with Qwen 3.5 35B-A3B MoE model, no API keys needed
-- **REST API** — `POST /api/trip/plan`, `GET /api/trip`, `GET /api/trip/{id}`
+- **Browser Extension** — Chrome extension that extracts location data from Google Maps, Yelp, and TripAdvisor and saves it to your trip ideas
+- **REST API** — `POST /api/trip/plan`, `GET /api/trip`, `GET /api/trip/{id}`, plus location endpoints for the extension
 - **Location Cache** — Cache-first area search with 30-day TTL, auto-caches locations from trip events
 - **SQLite Persistence** — Trip history and cached locations stored locally via EF Core
 
@@ -116,7 +117,7 @@ Open **http://localhost:5197** in your browser. You'll see the chat interface �
 dotnet test AetherPlan.sln
 ```
 
-41 unit tests covering all services, the agent loop, and API endpoints. Tests don't require Ollama or Google Calendar.
+78 unit tests covering all services, the agent loop, API endpoints, and the location service. Tests don't require Ollama or Google Calendar.
 
 ## Project Structure
 
@@ -140,6 +141,13 @@ SmartTripPlanner/
 │   │   ├── Data/                # EF Core DbContext + migrations
 │   │   ├── Tools/               # LLM tool definitions
 │   │   └── Program.cs
+│   ├── AetherPlan.Extension/     # Chrome browser extension
+│   │   ├── manifest.json        # Manifest V3 config
+│   │   ├── content.js           # Location extraction pipeline
+│   │   ├── background.js        # API communication service worker
+│   │   ├── parsers/             # Site-specific and structured data parsers
+│   │   ├── popup.html/css/js    # Extension popup UI
+│   │   └── options.html/js      # Settings page
 │   └── AetherPlan.Tests/        # xUnit test suite
 ├── docs/plans/                  # Design and implementation plans
 ├── CLAUDE.md                    # Project spec for AI assistants
@@ -177,6 +185,9 @@ The REST API coexists with the Blazor UI. Use it for scripting or external integ
 | `POST` | `/api/trip/plan` | Send a natural language trip request. Body: `{ "request": "..." }` |
 | `GET` | `/api/trip` | List all saved trips |
 | `GET` | `/api/trip/{id}` | Get a trip with its events |
+| `POST` | `/api/locations` | Save a location (from extension or direct). Body: `{ "name": "...", "sourceUrl": "..." }` or `{ "rawPageContent": "..." }` for LLM extraction |
+| `GET` | `/api/locations` | List locations. Query params: `tripId`, `unassigned=true` |
+| `POST` | `/api/locations/{id}/assign` | Assign a saved location to a trip. Body: `{ "tripId": 1 }` |
 
 Example:
 ```bash
@@ -203,6 +214,30 @@ curl -X POST http://localhost:5197/api/trip/plan \
 Tested on AMD Radeon RX 7900 XTX (24GB VRAM) with ROCm. The Qwen 3.5 35B-A3B model at q4_K_M uses ~21GB VRAM. Ollama auto-detects ROCm.
 
 For NVIDIA GPUs, Ollama uses CUDA automatically. Any GPU with 16GB+ VRAM should work with a smaller quantization.
+
+## Browser Extension
+
+The Chrome extension lets you save locations from Google Maps, Yelp, and TripAdvisor directly to your AetherPlan trip ideas.
+
+### Install
+
+1. Open `chrome://extensions/`
+2. Enable **Developer mode** (top right)
+3. Click **Load unpacked**
+4. Select the `src/AetherPlan.Extension/` folder
+
+### Usage
+
+1. Navigate to a location page on Google Maps, Yelp, or TripAdvisor
+2. Click the AetherPlan extension icon
+3. The popup shows the extracted location name and address
+4. Click **Save to Ideas** to save for later, or select a trip and click **Add to Trip**
+
+The extension uses a tiered extraction pipeline: site-specific parsers first, then structured data (schema.org/JSON-LD), then LLM fallback for unrecognized pages.
+
+### Configuration
+
+Click the gear icon in the popup or go to the extension's Options page to set the API URL (default: `http://localhost:5197`).
 
 ## Troubleshooting
 
