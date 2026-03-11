@@ -81,6 +81,15 @@ else
 
 builder.Services.AddScoped<IAgentService, AgentService>();
 builder.Services.AddScoped<IPersistenceService, PersistenceService>();
+builder.Services.AddScoped<ILocationService, LocationService>();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ExtensionPolicy", policy =>
+        policy.SetIsOriginAllowed(origin => origin.StartsWith("chrome-extension://"))
+              .WithMethods("GET", "POST")
+              .AllowAnyHeader());
+});
 
 builder.Services.AddControllers();
 
@@ -91,6 +100,8 @@ var app = builder.Build();
 
 app.UseStaticFiles();
 app.UseAntiforgery();
+
+app.UseCors("ExtensionPolicy");
 
 app.MapControllers();
 
