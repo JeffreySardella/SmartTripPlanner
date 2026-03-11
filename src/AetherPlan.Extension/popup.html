@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AetherPlan</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div id="app">
+    <h1>AetherPlan</h1>
+
+    <div id="loading">
+      <p id="loading-text">Scanning page...</p>
+    </div>
+
+    <div id="location-info" hidden>
+      <div id="location-name" class="info-row"></div>
+      <div id="location-address" class="info-row secondary"></div>
+      <div id="location-category" class="info-row secondary"></div>
+
+      <div class="actions">
+        <button id="save-ideas" class="btn btn-primary">Save to Ideas</button>
+        <div class="trip-row">
+          <select id="trip-select" class="trip-dropdown">
+            <option value="">Select a trip...</option>
+          </select>
+          <button id="save-trip" class="btn btn-secondary" disabled>Add to Trip</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="no-location" hidden>
+      <p>No location found on this page.</p>
+    </div>
+
+    <div id="status" hidden>
+      <p id="status-text"></p>
+    </div>
+
+    <div id="error" hidden>
+      <p id="error-text" class="error-text"></p>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

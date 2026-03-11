@@ -20,5 +20,11 @@ public class AetherPlanDbContext(DbContextOptions<AetherPlanDbContext> options) 
         modelBuilder.Entity<UserPreference>()
             .HasIndex(p => p.Key)
             .IsUnique();
+
+        modelBuilder.Entity<CachedLocation>()
+            .HasOne(cl => cl.Trip)
+            .WithMany()
+            .HasForeignKey(cl => cl.TripId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }
