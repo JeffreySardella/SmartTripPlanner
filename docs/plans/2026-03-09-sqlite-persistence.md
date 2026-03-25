@@ -13,33 +13,33 @@
 ## Task 0: PersistenceService
 
 **Files:**
-- Create: `src/AetherPlan.Api/Services/IPersistenceService.cs`
-- Create: `src/AetherPlan.Api/Services/PersistenceService.cs`
-- Create: `src/AetherPlan.Tests/Services/PersistenceServiceTests.cs`
-- Modify: `src/AetherPlan.Api/Program.cs`
+- Create: `src/SmartTripPlanner.Api/Services/IPersistenceService.cs`
+- Create: `src/SmartTripPlanner.Api/Services/PersistenceService.cs`
+- Create: `src/SmartTripPlanner.Tests/Services/PersistenceServiceTests.cs`
+- Modify: `src/SmartTripPlanner.Api/Program.cs`
 
 **Step 1: Write the failing tests**
 
 ```csharp
-// src/AetherPlan.Tests/Services/PersistenceServiceTests.cs
-namespace AetherPlan.Tests.Services;
+// src/SmartTripPlanner.Tests/Services/PersistenceServiceTests.cs
+namespace SmartTripPlanner.Tests.Services;
 
-using AetherPlan.Api.Data;
-using AetherPlan.Api.Models;
-using AetherPlan.Api.Services;
+using SmartTripPlanner.Api.Data;
+using SmartTripPlanner.Api.Models;
+using SmartTripPlanner.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
 public class PersistenceServiceTests : IDisposable
 {
-    private readonly AetherPlanDbContext _db;
+    private readonly SmartTripPlannerDbContext _db;
     private readonly PersistenceService _sut;
 
     public PersistenceServiceTests()
     {
-        var options = new DbContextOptionsBuilder<AetherPlanDbContext>()
+        var options = new DbContextOptionsBuilder<SmartTripPlannerDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
-        _db = new AetherPlanDbContext(options);
+        _db = new SmartTripPlannerDbContext(options);
         _sut = new PersistenceService(_db);
     }
 
@@ -106,7 +106,7 @@ public class PersistenceServiceTests : IDisposable
 **Step 2: Run tests to verify they fail**
 
 ```bash
-dotnet test src/AetherPlan.Tests --filter "FullyQualifiedName~PersistenceServiceTests" -v minimal
+dotnet test src/SmartTripPlanner.Tests --filter "FullyQualifiedName~PersistenceServiceTests" -v minimal
 ```
 
 Expected: FAIL — `PersistenceService` does not exist.
@@ -114,10 +114,10 @@ Expected: FAIL — `PersistenceService` does not exist.
 **Step 3: Create the interface**
 
 ```csharp
-// src/AetherPlan.Api/Services/IPersistenceService.cs
-namespace AetherPlan.Api.Services;
+// src/SmartTripPlanner.Api/Services/IPersistenceService.cs
+namespace SmartTripPlanner.Api.Services;
 
-using AetherPlan.Api.Models;
+using SmartTripPlanner.Api.Models;
 
 public interface IPersistenceService
 {
@@ -132,14 +132,14 @@ public interface IPersistenceService
 **Step 4: Implement PersistenceService**
 
 ```csharp
-// src/AetherPlan.Api/Services/PersistenceService.cs
-namespace AetherPlan.Api.Services;
+// src/SmartTripPlanner.Api/Services/PersistenceService.cs
+namespace SmartTripPlanner.Api.Services;
 
-using AetherPlan.Api.Data;
-using AetherPlan.Api.Models;
+using SmartTripPlanner.Api.Data;
+using SmartTripPlanner.Api.Models;
 using Microsoft.EntityFrameworkCore;
 
-public class PersistenceService(AetherPlanDbContext db) : IPersistenceService
+public class PersistenceService(SmartTripPlannerDbContext db) : IPersistenceService
 {
     public async Task<Trip> CreateTripAsync(string destination, DateTime startDate, DateTime endDate)
     {
@@ -194,7 +194,7 @@ public class PersistenceService(AetherPlanDbContext db) : IPersistenceService
 **Step 5: Run tests to verify they pass**
 
 ```bash
-dotnet test src/AetherPlan.Tests --filter "FullyQualifiedName~PersistenceServiceTests" -v minimal
+dotnet test src/SmartTripPlanner.Tests --filter "FullyQualifiedName~PersistenceServiceTests" -v minimal
 ```
 
 Expected: All 5 tests PASS.
@@ -209,7 +209,7 @@ builder.Services.AddScoped<IPersistenceService, PersistenceService>();
 **Step 7: Commit**
 
 ```bash
-git add src/AetherPlan.Api/Services/IPersistenceService.cs src/AetherPlan.Api/Services/PersistenceService.cs src/AetherPlan.Tests/Services/PersistenceServiceTests.cs src/AetherPlan.Api/Program.cs
+git add src/SmartTripPlanner.Api/Services/IPersistenceService.cs src/SmartTripPlanner.Api/Services/PersistenceService.cs src/SmartTripPlanner.Tests/Services/PersistenceServiceTests.cs src/SmartTripPlanner.Api/Program.cs
 git commit -m "feat: add PersistenceService for trip CRUD with SQLite"
 ```
 
@@ -218,18 +218,18 @@ git commit -m "feat: add PersistenceService for trip CRUD with SQLite"
 ## Task 1: Wire Persistence into AgentService
 
 **Files:**
-- Modify: `src/AetherPlan.Api/Services/AgentService.cs`
-- Modify: `src/AetherPlan.Api/Services/IAgentService.cs`
-- Create: `src/AetherPlan.Tests/Services/AgentServicePersistenceTests.cs`
+- Modify: `src/SmartTripPlanner.Api/Services/AgentService.cs`
+- Modify: `src/SmartTripPlanner.Api/Services/IAgentService.cs`
+- Create: `src/SmartTripPlanner.Tests/Services/AgentServicePersistenceTests.cs`
 
 **Step 1: Write the failing test**
 
 ```csharp
-// src/AetherPlan.Tests/Services/AgentServicePersistenceTests.cs
-namespace AetherPlan.Tests.Services;
+// src/SmartTripPlanner.Tests/Services/AgentServicePersistenceTests.cs
+namespace SmartTripPlanner.Tests.Services;
 
-using AetherPlan.Api.Models;
-using AetherPlan.Api.Services;
+using SmartTripPlanner.Api.Models;
+using SmartTripPlanner.Api.Services;
 using NSubstitute;
 using Microsoft.Extensions.Logging;
 
@@ -302,7 +302,7 @@ public class AgentServicePersistenceTests
 **Step 2: Run test to verify it fails**
 
 ```bash
-dotnet test src/AetherPlan.Tests --filter "FullyQualifiedName~AgentServicePersistenceTests" -v minimal
+dotnet test src/SmartTripPlanner.Tests --filter "FullyQualifiedName~AgentServicePersistenceTests" -v minimal
 ```
 
 Expected: FAIL — AgentService constructor doesn't accept IPersistenceService yet.
@@ -368,7 +368,7 @@ Same for `AgentServiceErrorTests`.
 **Step 5: Run all tests**
 
 ```bash
-dotnet test AetherPlan.sln -v minimal
+dotnet test SmartTripPlanner.sln -v minimal
 ```
 
 Expected: All tests pass (existing + 1 new).
@@ -376,7 +376,7 @@ Expected: All tests pass (existing + 1 new).
 **Step 6: Commit**
 
 ```bash
-git add src/AetherPlan.Api/Services/AgentService.cs src/AetherPlan.Tests/Services/AgentServicePersistenceTests.cs src/AetherPlan.Tests/Services/AgentServiceTests.cs src/AetherPlan.Tests/Services/AgentServiceErrorTests.cs
+git add src/SmartTripPlanner.Api/Services/AgentService.cs src/SmartTripPlanner.Tests/Services/AgentServicePersistenceTests.cs src/SmartTripPlanner.Tests/Services/AgentServiceTests.cs src/SmartTripPlanner.Tests/Services/AgentServiceErrorTests.cs
 git commit -m "feat: wire PersistenceService into AgentService for trip event saving"
 ```
 
@@ -385,8 +385,8 @@ git commit -m "feat: wire PersistenceService into AgentService for trip event sa
 ## Task 2: Trip History Endpoints
 
 **Files:**
-- Modify: `src/AetherPlan.Api/Controllers/TripController.cs`
-- Modify: `src/AetherPlan.Tests/Controllers/TripControllerTests.cs`
+- Modify: `src/SmartTripPlanner.Api/Controllers/TripController.cs`
+- Modify: `src/SmartTripPlanner.Tests/Controllers/TripControllerTests.cs`
 
 **Step 1: Write the failing tests**
 
@@ -447,7 +447,7 @@ public async Task GetTrip_NotFound_Returns404()
 **Step 2: Run tests to verify they fail**
 
 ```bash
-dotnet test src/AetherPlan.Tests --filter "FullyQualifiedName~TripControllerTests" -v minimal
+dotnet test src/SmartTripPlanner.Tests --filter "FullyQualifiedName~TripControllerTests" -v minimal
 ```
 
 **Step 3: Update TripController**
@@ -494,7 +494,7 @@ public class TripController(IAgentService agentService, IPersistenceService pers
 **Step 4: Run tests**
 
 ```bash
-dotnet test src/AetherPlan.Tests --filter "FullyQualifiedName~TripControllerTests" -v minimal
+dotnet test src/SmartTripPlanner.Tests --filter "FullyQualifiedName~TripControllerTests" -v minimal
 ```
 
 Expected: All 5 tests PASS (2 existing + 3 new).
@@ -502,13 +502,13 @@ Expected: All 5 tests PASS (2 existing + 3 new).
 **Step 5: Run all tests**
 
 ```bash
-dotnet test AetherPlan.sln -v minimal
+dotnet test SmartTripPlanner.sln -v minimal
 ```
 
 **Step 6: Commit**
 
 ```bash
-git add src/AetherPlan.Api/Controllers/TripController.cs src/AetherPlan.Tests/Controllers/TripControllerTests.cs
+git add src/SmartTripPlanner.Api/Controllers/TripController.cs src/SmartTripPlanner.Tests/Controllers/TripControllerTests.cs
 git commit -m "feat: add GET /api/trip and GET /api/trip/{id} endpoints for trip history"
 ```
 

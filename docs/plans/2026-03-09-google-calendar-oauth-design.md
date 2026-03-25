@@ -16,7 +16,7 @@ A `GoogleCalendarFactory` static helper handles the OAuth 2.0 flow at startup. I
 
 ### GoogleCalendarFactory (new)
 
-- Location: `src/AetherPlan.Api/Services/GoogleCalendarFactory.cs`
+- Location: `src/SmartTripPlanner.Api/Services/GoogleCalendarFactory.cs`
 - Static class with `CreateAsync(string credentialPath, string tokenDir)` method
 - Reads `client_secret.json` via `GoogleWebAuthorizationBroker.AuthorizeAsync`
 - Scope: `CalendarService.Scope.Calendar`

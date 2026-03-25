@@ -13,8 +13,8 @@
 ## Task 0: Add NuGet Package and Update Config
 
 **Files:**
-- Modify: `src/AetherPlan.Api/AetherPlan.Api.csproj`
-- Modify: `src/AetherPlan.Api/appsettings.json`
+- Modify: `src/SmartTripPlanner.Api/SmartTripPlanner.Api.csproj`
+- Modify: `src/SmartTripPlanner.Api/appsettings.json`
 - Modify: `.gitignore`
 
 **Step 1: Add Google.Apis.Auth package**
@@ -22,17 +22,17 @@
 Run from `C:/Users/Jeff/Documents/Github_new/SmartTripPlanner`:
 
 ```bash
-dotnet add src/AetherPlan.Api package Google.Apis.Auth
+dotnet add src/SmartTripPlanner.Api package Google.Apis.Auth
 ```
 
 **Step 2: Add GoogleCalendar config to appsettings.json**
 
-The file is at `src/AetherPlan.Api/appsettings.json`. Add a `GoogleCalendar` section after the `Ollama` section:
+The file is at `src/SmartTripPlanner.Api/appsettings.json`. Add a `GoogleCalendar` section after the `Ollama` section:
 
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Data Source=AetherPlan.db"
+    "DefaultConnection": "Data Source=SmartTripPlanner.db"
   },
   "Logging": {
     "LogLevel": {
@@ -61,7 +61,7 @@ The `.gitignore` is in the repo root. Add this line to the "Secrets & credential
 **Step 4: Verify build**
 
 ```bash
-dotnet build AetherPlan.sln
+dotnet build SmartTripPlanner.sln
 ```
 
 Expected: Build succeeded, 0 errors.
@@ -69,7 +69,7 @@ Expected: Build succeeded, 0 errors.
 **Step 5: Commit**
 
 ```bash
-git add src/AetherPlan.Api/AetherPlan.Api.csproj src/AetherPlan.Api/appsettings.json .gitignore
+git add src/SmartTripPlanner.Api/SmartTripPlanner.Api.csproj src/SmartTripPlanner.Api/appsettings.json .gitignore
 git commit -m "chore: add Google.Apis.Auth package and calendar config"
 ```
 
@@ -78,17 +78,17 @@ git commit -m "chore: add Google.Apis.Auth package and calendar config"
 ## Task 1: Create GoogleCalendarFactory
 
 **Files:**
-- Create: `src/AetherPlan.Api/Services/GoogleCalendarFactory.cs`
-- Test: `src/AetherPlan.Tests/Services/GoogleCalendarFactoryTests.cs`
+- Create: `src/SmartTripPlanner.Api/Services/GoogleCalendarFactory.cs`
+- Test: `src/SmartTripPlanner.Tests/Services/GoogleCalendarFactoryTests.cs`
 
 **Step 1: Write the test**
 
-Create `src/AetherPlan.Tests/Services/GoogleCalendarFactoryTests.cs`:
+Create `src/SmartTripPlanner.Tests/Services/GoogleCalendarFactoryTests.cs`:
 
 ```csharp
-namespace AetherPlan.Tests.Services;
+namespace SmartTripPlanner.Tests.Services;
 
-using AetherPlan.Api.Services;
+using SmartTripPlanner.Api.Services;
 
 public class GoogleCalendarFactoryTests
 {
@@ -106,17 +106,17 @@ public class GoogleCalendarFactoryTests
 **Step 2: Run test to verify it fails**
 
 ```bash
-dotnet test AetherPlan.sln --filter "GoogleCalendarFactoryTests"
+dotnet test SmartTripPlanner.sln --filter "GoogleCalendarFactoryTests"
 ```
 
 Expected: FAIL — `GoogleCalendarFactory` does not exist yet.
 
 **Step 3: Write the implementation**
 
-Create `src/AetherPlan.Api/Services/GoogleCalendarFactory.cs`:
+Create `src/SmartTripPlanner.Api/Services/GoogleCalendarFactory.cs`:
 
 ```csharp
-namespace AetherPlan.Api.Services;
+namespace SmartTripPlanner.Api.Services;
 
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Calendar.v3;
@@ -144,7 +144,7 @@ public static class GoogleCalendarFactory
         return new CalendarApi(new BaseClientService.Initializer
         {
             HttpClientInitializer = credential,
-            ApplicationName = "AetherPlan"
+            ApplicationName = "SmartTripPlanner"
         });
     }
 }
@@ -153,7 +153,7 @@ public static class GoogleCalendarFactory
 **Step 4: Run tests**
 
 ```bash
-dotnet test AetherPlan.sln --filter "GoogleCalendarFactoryTests"
+dotnet test SmartTripPlanner.sln --filter "GoogleCalendarFactoryTests"
 ```
 
 Expected: 1 test passed.
@@ -161,7 +161,7 @@ Expected: 1 test passed.
 **Step 5: Run all tests to check for regressions**
 
 ```bash
-dotnet test AetherPlan.sln -v minimal
+dotnet test SmartTripPlanner.sln -v minimal
 ```
 
 Expected: 37 tests passed.
@@ -169,7 +169,7 @@ Expected: 37 tests passed.
 **Step 6: Commit**
 
 ```bash
-git add src/AetherPlan.Api/Services/GoogleCalendarFactory.cs src/AetherPlan.Tests/Services/GoogleCalendarFactoryTests.cs
+git add src/SmartTripPlanner.Api/Services/GoogleCalendarFactory.cs src/SmartTripPlanner.Tests/Services/GoogleCalendarFactoryTests.cs
 git commit -m "feat: add GoogleCalendarFactory with OAuth 2.0 support"
 ```
 
@@ -178,12 +178,12 @@ git commit -m "feat: add GoogleCalendarFactory with OAuth 2.0 support"
 ## Task 2: Wire Factory into Program.cs and Update CalendarService DI
 
 **Files:**
-- Modify: `src/AetherPlan.Api/Program.cs`
-- Modify: `src/AetherPlan.Api/Services/CalendarService.cs`
+- Modify: `src/SmartTripPlanner.Api/Program.cs`
+- Modify: `src/SmartTripPlanner.Api/Services/CalendarService.cs`
 
 **Step 1: Update Program.cs to register CalendarApi via factory**
 
-In `src/AetherPlan.Api/Program.cs`, replace the existing line:
+In `src/SmartTripPlanner.Api/Program.cs`, replace the existing line:
 
 ```csharp
 builder.Services.AddScoped<ICalendarService, CalendarService>();
@@ -215,7 +215,7 @@ builder.Services.AddScoped<ICalendarService, CalendarService>();
 
 Also add this using at the top of Program.cs (it may already exist from the `CalendarApi` alias, but `GoogleCalendarFactory` is in the `Services` namespace which is already imported):
 
-No new usings needed — `AetherPlan.Api.Services` is already imported.
+No new usings needed — `SmartTripPlanner.Api.Services` is already imported.
 
 **Step 2: Update CalendarService constructor to handle optional CalendarApi**
 
@@ -227,7 +227,7 @@ public CalendarService(CalendarApi? calendarService, ILogger<CalendarService>? l
 
 DI won't resolve `CalendarApi?` — it needs to handle the case where CalendarApi is not registered. Change the constructor to accept `IServiceProvider` and try to resolve:
 
-Actually, the simpler approach: use two constructors. Replace the existing constructor in `src/AetherPlan.Api/Services/CalendarService.cs`:
+Actually, the simpler approach: use two constructors. Replace the existing constructor in `src/SmartTripPlanner.Api/Services/CalendarService.cs`:
 
 ```csharp
 public CalendarService(ILogger<CalendarService> logger, CalendarApi? calendarService = null)
@@ -282,7 +282,7 @@ builder.Services.AddScoped<ICalendarService>(sp =>
 **Step 3: Verify build**
 
 ```bash
-dotnet build AetherPlan.sln
+dotnet build SmartTripPlanner.sln
 ```
 
 Expected: Build succeeded, 0 errors, 0 warnings.
@@ -290,7 +290,7 @@ Expected: Build succeeded, 0 errors, 0 warnings.
 **Step 4: Run all tests**
 
 ```bash
-dotnet test AetherPlan.sln -v minimal
+dotnet test SmartTripPlanner.sln -v minimal
 ```
 
 Expected: 37 tests passed (TestableCalendarService still works because its `base(calendarService: null!)` call matches the existing constructor).
@@ -298,7 +298,7 @@ Expected: 37 tests passed (TestableCalendarService still works because its `base
 **Step 5: Commit**
 
 ```bash
-git add src/AetherPlan.Api/Program.cs src/AetherPlan.Api/Services/CalendarService.cs
+git add src/SmartTripPlanner.Api/Program.cs src/SmartTripPlanner.Api/Services/CalendarService.cs
 git commit -m "feat: wire Google Calendar OAuth factory into DI pipeline"
 ```
 
@@ -307,17 +307,17 @@ git commit -m "feat: wire Google Calendar OAuth factory into DI pipeline"
 ## Task 3: Fix launchSettings.json
 
 **Files:**
-- Modify: `src/AetherPlan.Api/Properties/launchSettings.json`
+- Modify: `src/SmartTripPlanner.Api/Properties/launchSettings.json`
 
 **Step 1: Update launchSettings.json**
 
-Replace the entire file content of `src/AetherPlan.Api/Properties/launchSettings.json`:
+Replace the entire file content of `src/SmartTripPlanner.Api/Properties/launchSettings.json`:
 
 ```json
 {
   "$schema": "http://json.schemastore.org/launchsettings.json",
   "profiles": {
-    "AetherPlan": {
+    "SmartTripPlanner": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
@@ -335,7 +335,7 @@ This removes the stale `weatherforecast` launch URL, drops the unused IIS Expres
 **Step 2: Verify build**
 
 ```bash
-dotnet build AetherPlan.sln
+dotnet build SmartTripPlanner.sln
 ```
 
 Expected: Build succeeded.
@@ -343,7 +343,7 @@ Expected: Build succeeded.
 **Step 3: Run all tests**
 
 ```bash
-dotnet test AetherPlan.sln -v minimal
+dotnet test SmartTripPlanner.sln -v minimal
 ```
 
 Expected: 37 tests passed.
@@ -351,7 +351,7 @@ Expected: 37 tests passed.
 **Step 4: Commit**
 
 ```bash
-git add src/AetherPlan.Api/Properties/launchSettings.json
+git add src/SmartTripPlanner.Api/Properties/launchSettings.json
 git commit -m "fix: update launchSettings to remove template defaults"
 ```
 

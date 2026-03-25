@@ -15,13 +15,13 @@
 ## Task 0: Add Persistence Methods to IPersistenceService
 
 **Files:**
-- Modify: `src/AetherPlan.Api/Services/IPersistenceService.cs`
-- Modify: `src/AetherPlan.Api/Services/PersistenceService.cs`
-- Test: `src/AetherPlan.Tests/Services/PersistenceServiceTests.cs`
+- Modify: `src/SmartTripPlanner.Api/Services/IPersistenceService.cs`
+- Modify: `src/SmartTripPlanner.Api/Services/PersistenceService.cs`
+- Test: `src/SmartTripPlanner.Tests/Services/PersistenceServiceTests.cs`
 
 ### Step 1: Write the 4 failing tests
 
-Add the following 4 tests to the bottom of `src/AetherPlan.Tests/Services/PersistenceServiceTests.cs`, inside the `PersistenceServiceTests` class:
+Add the following 4 tests to the bottom of `src/SmartTripPlanner.Tests/Services/PersistenceServiceTests.cs`, inside the `PersistenceServiceTests` class:
 
 ```csharp
 [Fact]
@@ -108,14 +108,14 @@ Note: `PersistenceServiceTests` already imports `Microsoft.EntityFrameworkCore`,
 ### Step 2: Run tests to verify they fail
 
 ```bash
-dotnet test AetherPlan.sln --filter "PersistenceServiceTests" -v minimal
+dotnet test SmartTripPlanner.sln --filter "PersistenceServiceTests" -v minimal
 ```
 
 Expected: FAIL — `SearchCachedLocationsAsync` and `CacheLocationsAsync` do not exist on `PersistenceService`.
 
 ### Step 3: Add method signatures to IPersistenceService
 
-Add the following 3 method signatures to the bottom of `src/AetherPlan.Api/Services/IPersistenceService.cs`, inside the interface, before the closing brace:
+Add the following 3 method signatures to the bottom of `src/SmartTripPlanner.Api/Services/IPersistenceService.cs`, inside the interface, before the closing brace:
 
 ```csharp
 Task<List<CachedLocation>> SearchCachedLocationsAsync(string area, string? category = null);
@@ -123,11 +123,11 @@ Task CacheLocationsAsync(List<CachedLocation> locations);
 Task<CachedLocation?> GetCachedLocationByNameAsync(string name);
 ```
 
-Also add the `CachedLocation` model import if not present. The file already has `using AetherPlan.Api.Models;` so no new using needed.
+Also add the `CachedLocation` model import if not present. The file already has `using SmartTripPlanner.Api.Models;` so no new using needed.
 
 ### Step 4: Implement the 3 methods in PersistenceService
 
-Add the following 3 methods to the bottom of `src/AetherPlan.Api/Services/PersistenceService.cs`, inside the `PersistenceService` class, before the closing brace:
+Add the following 3 methods to the bottom of `src/SmartTripPlanner.Api/Services/PersistenceService.cs`, inside the `PersistenceService` class, before the closing brace:
 
 ```csharp
 public async Task<List<CachedLocation>> SearchCachedLocationsAsync(string area, string? category = null)
@@ -179,7 +179,7 @@ public async Task<CachedLocation?> GetCachedLocationByNameAsync(string name)
 ### Step 5: Run the 4 new tests
 
 ```bash
-dotnet test AetherPlan.sln --filter "PersistenceServiceTests" -v minimal
+dotnet test SmartTripPlanner.sln --filter "PersistenceServiceTests" -v minimal
 ```
 
 Expected: 9 tests passed (5 existing + 4 new), 0 failed.
@@ -187,7 +187,7 @@ Expected: 9 tests passed (5 existing + 4 new), 0 failed.
 ### Step 6: Run all tests for regression check
 
 ```bash
-dotnet test AetherPlan.sln -v minimal
+dotnet test SmartTripPlanner.sln -v minimal
 ```
 
 Expected: 41 tests passed (37 existing + 4 new), 0 failed.
@@ -195,7 +195,7 @@ Expected: 41 tests passed (37 existing + 4 new), 0 failed.
 ### Step 7: Commit
 
 ```bash
-git add src/AetherPlan.Api/Services/IPersistenceService.cs src/AetherPlan.Api/Services/PersistenceService.cs src/AetherPlan.Tests/Services/PersistenceServiceTests.cs
+git add src/SmartTripPlanner.Api/Services/IPersistenceService.cs src/SmartTripPlanner.Api/Services/PersistenceService.cs src/SmartTripPlanner.Tests/Services/PersistenceServiceTests.cs
 git commit -m "feat: add cached location persistence methods with 30-day TTL"
 ```
 
@@ -204,11 +204,11 @@ git commit -m "feat: add cached location persistence methods with 30-day TTL"
 ## Task 1: Add lat/lng to add_trip_event Tool Definition
 
 **Files:**
-- Modify: `src/AetherPlan.Api/Tools/ToolDefinitions.cs`
+- Modify: `src/SmartTripPlanner.Api/Tools/ToolDefinitions.cs`
 
 ### Step 1: Add latitude and longitude properties to add_trip_event
 
-In `src/AetherPlan.Api/Tools/ToolDefinitions.cs`, find the `add_trip_event` tool's `properties` block. After the `description` property, add:
+In `src/SmartTripPlanner.Api/Tools/ToolDefinitions.cs`, find the `add_trip_event` tool's `properties` block. After the `description` property, add:
 
 ```csharp
 latitude = new { type = "number", description = "Location latitude (optional)" },
@@ -220,7 +220,7 @@ The `required` array stays unchanged: `new[] { "summary", "location", "start", "
 ### Step 2: Verify build
 
 ```bash
-dotnet build AetherPlan.sln
+dotnet build SmartTripPlanner.sln
 ```
 
 Expected: Build succeeded, 0 errors.
@@ -228,7 +228,7 @@ Expected: Build succeeded, 0 errors.
 ### Step 3: Run all tests
 
 ```bash
-dotnet test AetherPlan.sln -v minimal
+dotnet test SmartTripPlanner.sln -v minimal
 ```
 
 Expected: 41 tests passed, 0 failed. (The `ToolDefinitionsTests` check tool count and names, not properties, so they still pass.)
@@ -236,7 +236,7 @@ Expected: 41 tests passed, 0 failed. (The `ToolDefinitionsTests` check tool coun
 ### Step 4: Commit
 
 ```bash
-git add src/AetherPlan.Api/Tools/ToolDefinitions.cs
+git add src/SmartTripPlanner.Api/Tools/ToolDefinitions.cs
 git commit -m "feat: add optional lat/lng parameters to add_trip_event tool"
 ```
 
@@ -245,12 +245,12 @@ git commit -m "feat: add optional lat/lng parameters to add_trip_event tool"
 ## Task 2: Update AgentService search_area and add_trip_event Handlers
 
 **Files:**
-- Modify: `src/AetherPlan.Api/Services/AgentService.cs`
-- Test: `src/AetherPlan.Tests/Services/AgentServiceTests.cs`
+- Modify: `src/SmartTripPlanner.Api/Services/AgentService.cs`
+- Test: `src/SmartTripPlanner.Tests/Services/AgentServiceTests.cs`
 
 ### Step 1: Write the failing test
 
-Add the following test to the bottom of `src/AetherPlan.Tests/Services/AgentServiceTests.cs`, inside the `AgentServiceTests` class:
+Add the following test to the bottom of `src/SmartTripPlanner.Tests/Services/AgentServiceTests.cs`, inside the `AgentServiceTests` class:
 
 ```csharp
 [Fact]
@@ -297,19 +297,19 @@ public async Task RunAsync_SearchAreaWithCachedResults_ReturnsCachedLocations()
 }
 ```
 
-Add `using AetherPlan.Api.Models;` to the top of the test file if not already present.
+Add `using SmartTripPlanner.Api.Models;` to the top of the test file if not already present.
 
 ### Step 2: Run test to verify it fails
 
 ```bash
-dotnet test AetherPlan.sln --filter "RunAsync_SearchAreaWithCachedResults_ReturnsCachedLocations" -v minimal
+dotnet test SmartTripPlanner.sln --filter "RunAsync_SearchAreaWithCachedResults_ReturnsCachedLocations" -v minimal
 ```
 
 Expected: FAIL — the current `search_area` handler doesn't call `SearchCachedLocationsAsync`.
 
 ### Step 3: Replace the search_area handler in AgentService
 
-In `src/AetherPlan.Api/Services/AgentService.cs`, find the `search_area` case in the `ExecuteToolAsync` method (around line 104). Replace:
+In `src/SmartTripPlanner.Api/Services/AgentService.cs`, find the `search_area` case in the `ExecuteToolAsync` method (around line 104). Replace:
 
 ```csharp
 "search_area" => new { note = "search_area uses LLM internal knowledge, no external call needed",
@@ -352,7 +352,7 @@ private async Task<object> SearchAreaAsync(Dictionary<string, object> args)
 
 ### Step 4: Update the add_trip_event handler to parse lat/lng and cache
 
-In `src/AetherPlan.Api/Services/AgentService.cs`, find the `AddTripEventWithPersistence` method. Replace it entirely with:
+In `src/SmartTripPlanner.Api/Services/AgentService.cs`, find the `AddTripEventWithPersistence` method. Replace it entirely with:
 
 ```csharp
 private async Task<object> AddTripEventWithPersistence(Dictionary<string, object> args)
@@ -393,7 +393,7 @@ private async Task<object> AddTripEventWithPersistence(Dictionary<string, object
 ### Step 5: Run the new test
 
 ```bash
-dotnet test AetherPlan.sln --filter "RunAsync_SearchAreaWithCachedResults_ReturnsCachedLocations" -v minimal
+dotnet test SmartTripPlanner.sln --filter "RunAsync_SearchAreaWithCachedResults_ReturnsCachedLocations" -v minimal
 ```
 
 Expected: 1 test passed.
@@ -401,7 +401,7 @@ Expected: 1 test passed.
 ### Step 6: Run all tests for regression check
 
 ```bash
-dotnet test AetherPlan.sln -v minimal
+dotnet test SmartTripPlanner.sln -v minimal
 ```
 
 Expected: 42 tests passed (37 original + 4 persistence + 1 agent), 0 failed.
@@ -409,7 +409,7 @@ Expected: 42 tests passed (37 original + 4 persistence + 1 agent), 0 failed.
 ### Step 7: Commit
 
 ```bash
-git add src/AetherPlan.Api/Services/AgentService.cs src/AetherPlan.Tests/Services/AgentServiceTests.cs
+git add src/SmartTripPlanner.Api/Services/AgentService.cs src/SmartTripPlanner.Tests/Services/AgentServiceTests.cs
 git commit -m "feat: implement cache-first search_area and location caching in add_trip_event"
 ```
 

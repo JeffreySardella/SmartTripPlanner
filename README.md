@@ -1,4 +1,4 @@
-# AetherPlan
+# SmartTripPlanner
 
 Local smart trip planner that uses an AI agent to research destinations, check your Google Calendar for availability, validate travel times, and push optimized itineraries directly to your calendar.
 
@@ -54,7 +54,7 @@ The agent loop sends your request to a local LLM with tool definitions. The LLM 
 ```bash
 git clone https://github.com/JeffreySardella/SmartTripPlanner.git
 cd SmartTripPlanner
-dotnet build AetherPlan.sln
+dotnet build SmartTripPlanner.sln
 ```
 
 ### 2. Install Ollama and pull the model
@@ -74,7 +74,7 @@ If you have less VRAM, use a smaller quant:
 ollama pull qwen3.5:35b-a3b-q4_K_S
 ```
 
-Then update `Ollama:Model` in `src/AetherPlan.Api/appsettings.json` to match.
+Then update `Llm:Ollama:Model` in `src/SmartTripPlanner.Api/appsettings.json` to match.
 
 ### 3. Set up the database
 
@@ -83,7 +83,7 @@ Then update `Ollama:Model` in `src/AetherPlan.Api/appsettings.json` to match.
 dotnet tool install --global dotnet-ef
 
 # Apply migrations to create the SQLite database
-dotnet ef database update --project src/AetherPlan.Api
+dotnet ef database update --project src/SmartTripPlanner.Api
 ```
 
 ### 4. Set up Google Calendar (optional)
@@ -104,8 +104,8 @@ On first run, your browser will open for OAuth consent. The token is stored loca
 # Make sure Ollama is running first
 ollama serve
 
-# In another terminal, start AetherPlan
-dotnet run --project src/AetherPlan.Api
+# In another terminal, start SmartTripPlanner
+dotnet run --project src/SmartTripPlanner.Api
 ```
 
 Open **http://localhost:5197** in your browser. You'll see the chat interface — type something like "Plan a weekend trip to Portland" and the agent will start working.
@@ -113,17 +113,17 @@ Open **http://localhost:5197** in your browser. You'll see the chat interface �
 ### 6. Run tests
 
 ```bash
-dotnet test AetherPlan.sln
+dotnet test SmartTripPlanner.sln
 ```
 
-41 unit tests covering all services, the agent loop, and API endpoints. Tests don't require Ollama or Google Calendar.
+78 unit tests covering all services, the agent loop, and API endpoints. Tests don't require Ollama or Google Calendar.
 
 ## Project Structure
 
 ```
 SmartTripPlanner/
 ├── src/
-│   ├── AetherPlan.Api/
+│   ├── SmartTripPlanner.Api/
 │   │   ├── Components/          # Blazor Server UI
 │   │   │   ├── Pages/
 │   │   │   │   ├── Home.razor   # Chat interface (/)
@@ -140,33 +140,37 @@ SmartTripPlanner/
 │   │   ├── Data/                # EF Core DbContext + migrations
 │   │   ├── Tools/               # LLM tool definitions
 │   │   └── Program.cs
-│   └── AetherPlan.Tests/        # xUnit test suite
+│   └── SmartTripPlanner.Tests/        # xUnit test suite
 ├── docs/plans/                  # Design and implementation plans
 ├── CLAUDE.md                    # Project spec for AI assistants
-└── AetherPlan.sln
+└── SmartTripPlanner.sln
 ```
 
 ## Configuration
 
-All config is in `src/AetherPlan.Api/appsettings.json`:
+All config is in `src/SmartTripPlanner.Api/appsettings.json`:
 
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Data Source=AetherPlan.db"
+    "DefaultConnection": "Data Source=SmartTripPlanner.db"
   },
-  "Ollama": {
-    "BaseUrl": "http://localhost:11434",
-    "Model": "qwen3.5:35b-a3b-q4_K_M"
+  "Llm": {
+    "Provider": "ollama",
+    "Ollama": {
+      "BaseUrl": "http://localhost:11434",
+      "Model": "qwen3.5:35b-a3b-q4_K_M"
+    }
   }
 }
 ```
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `ConnectionStrings:DefaultConnection` | `Data Source=AetherPlan.db` | SQLite database path |
-| `Ollama:BaseUrl` | `http://localhost:11434` | Ollama API endpoint |
-| `Ollama:Model` | `qwen3.5:35b-a3b-q4_K_M` | Model to use (any tool-calling model works) |
+| `ConnectionStrings:DefaultConnection` | `Data Source=SmartTripPlanner.db` | SQLite database path |
+| `Llm:Provider` | `ollama` | LLM provider (`ollama` or `claude`) |
+| `Llm:Ollama:BaseUrl` | `http://localhost:11434` | Ollama API endpoint |
+| `Llm:Ollama:Model` | `qwen3.5:35b-a3b-q4_K_M` | Model to use (any tool-calling model works) |
 
 ## API Endpoints
 
@@ -174,7 +178,7 @@ The REST API coexists with the Blazor UI. Use it for scripting or external integ
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `POST` | `/api/trip/plan` | Send a natural language trip request. Body: `{ "request": "..." }` |
+| `POST` | `/api/trip/plan` | Send a natural language trip request. Body: `{ "prompt": "..." }` |
 | `GET` | `/api/trip` | List all saved trips |
 | `GET` | `/api/trip/{id}` | Get a trip with its events |
 
@@ -182,7 +186,7 @@ Example:
 ```bash
 curl -X POST http://localhost:5197/api/trip/plan \
   -H "Content-Type: application/json" \
-  -d '{"request": "Plan a day trip to Seattle this Saturday"}'
+  -d '{"prompt": "Plan a day trip to Seattle this Saturday"}'
 ```
 
 ## Tech Stack

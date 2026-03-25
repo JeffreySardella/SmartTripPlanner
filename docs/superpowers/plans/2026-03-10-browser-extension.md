@@ -1,8 +1,8 @@
-# AetherPlan Browser Extension Implementation Plan
+# SmartTripPlanner Browser Extension Implementation Plan
 
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build a Chrome extension that scrapes location data from webpages and saves it to AetherPlan via new REST endpoints, with LLM fallback for unrecognized pages.
+**Goal:** Build a Chrome extension that scrapes location data from webpages and saves it to SmartTripPlanner via new REST endpoints, with LLM fallback for unrecognized pages.
 
 **Architecture:** New `ILocationService` + `LocationsController` on the API side with 3 endpoints (save, list, assign). Manifest V3 Chrome extension with content script scraping, minimal popup UI, and background service worker for API communication. `CachedLocation` model extended with `Address`, `SourceUrl`, and `TripId` columns.
 
@@ -18,32 +18,32 @@
 
 | File | Action | Responsibility |
 |------|--------|---------------|
-| `src/AetherPlan.Api/Models/CachedLocation.cs` | Modify | Add `Address`, `SourceUrl`, `TripId` properties + `Trip` nav property |
-| `src/AetherPlan.Api/Models/LocationDtos.cs` | Create | `SaveLocationRequest` and `AssignLocationRequest` DTOs |
-| `src/AetherPlan.Api/Data/AetherPlanDbContext.cs` | Modify | Add `CachedLocation` → `Trip` FK relationship |
-| `src/AetherPlan.Api/Services/ILocationService.cs` | Create | Interface: `SaveLocationAsync`, `GetLocationsAsync`, `AssignToTripAsync` |
-| `src/AetherPlan.Api/Services/LocationService.cs` | Create | Implementation with LLM fallback extraction |
-| `src/AetherPlan.Api/Controllers/LocationsController.cs` | Create | 3 endpoints: POST save, GET list, POST assign |
-| `src/AetherPlan.Api/Program.cs` | Modify | Register `ILocationService`, add CORS policy |
-| `src/AetherPlan.Tests/Services/LocationServiceTests.cs` | Create | Unit tests for LocationService |
-| `src/AetherPlan.Tests/Controllers/LocationsControllerTests.cs` | Create | Unit tests for LocationsController |
+| `src/SmartTripPlanner.Api/Models/CachedLocation.cs` | Modify | Add `Address`, `SourceUrl`, `TripId` properties + `Trip` nav property |
+| `src/SmartTripPlanner.Api/Models/LocationDtos.cs` | Create | `SaveLocationRequest` and `AssignLocationRequest` DTOs |
+| `src/SmartTripPlanner.Api/Data/SmartTripPlannerDbContext.cs` | Modify | Add `CachedLocation` → `Trip` FK relationship |
+| `src/SmartTripPlanner.Api/Services/ILocationService.cs` | Create | Interface: `SaveLocationAsync`, `GetLocationsAsync`, `AssignToTripAsync` |
+| `src/SmartTripPlanner.Api/Services/LocationService.cs` | Create | Implementation with LLM fallback extraction |
+| `src/SmartTripPlanner.Api/Controllers/LocationsController.cs` | Create | 3 endpoints: POST save, GET list, POST assign |
+| `src/SmartTripPlanner.Api/Program.cs` | Modify | Register `ILocationService`, add CORS policy |
+| `src/SmartTripPlanner.Tests/Services/LocationServiceTests.cs` | Create | Unit tests for LocationService |
+| `src/SmartTripPlanner.Tests/Controllers/LocationsControllerTests.cs` | Create | Unit tests for LocationsController |
 
 ### Chrome Extension (new directory)
 
 | File | Action | Responsibility |
 |------|--------|---------------|
-| `src/AetherPlan.Extension/manifest.json` | Create | Extension manifest with permissions |
-| `src/AetherPlan.Extension/content.js` | Create | Page scraping orchestrator |
-| `src/AetherPlan.Extension/parsers/structured.js` | Create | schema.org JSON-LD, Open Graph, meta tag parsing |
-| `src/AetherPlan.Extension/parsers/google-maps.js` | Create | Google Maps URL + DOM parser |
-| `src/AetherPlan.Extension/parsers/yelp.js` | Create | Yelp business page parser |
-| `src/AetherPlan.Extension/parsers/tripadvisor.js` | Create | TripAdvisor page parser |
-| `src/AetherPlan.Extension/background.js` | Create | Service worker, API communication |
-| `src/AetherPlan.Extension/popup.html` | Create | Popup UI markup |
-| `src/AetherPlan.Extension/popup.js` | Create | Popup logic |
-| `src/AetherPlan.Extension/popup.css` | Create | Popup styles |
-| `src/AetherPlan.Extension/options.html` | Create | Settings page |
-| `src/AetherPlan.Extension/options.js` | Create | Settings logic |
+| `src/SmartTripPlanner.Extension/manifest.json` | Create | Extension manifest with permissions |
+| `src/SmartTripPlanner.Extension/content.js` | Create | Page scraping orchestrator |
+| `src/SmartTripPlanner.Extension/parsers/structured.js` | Create | schema.org JSON-LD, Open Graph, meta tag parsing |
+| `src/SmartTripPlanner.Extension/parsers/google-maps.js` | Create | Google Maps URL + DOM parser |
+| `src/SmartTripPlanner.Extension/parsers/yelp.js` | Create | Yelp business page parser |
+| `src/SmartTripPlanner.Extension/parsers/tripadvisor.js` | Create | TripAdvisor page parser |
+| `src/SmartTripPlanner.Extension/background.js` | Create | Service worker, API communication |
+| `src/SmartTripPlanner.Extension/popup.html` | Create | Popup UI markup |
+| `src/SmartTripPlanner.Extension/popup.js` | Create | Popup logic |
+| `src/SmartTripPlanner.Extension/popup.css` | Create | Popup styles |
+| `src/SmartTripPlanner.Extension/options.html` | Create | Settings page |
+| `src/SmartTripPlanner.Extension/options.js` | Create | Settings logic |
 
 ---
 
@@ -52,15 +52,15 @@
 ### Task 0: Extend CachedLocation Model + EF Migration
 
 **Files:**
-- Modify: `src/AetherPlan.Api/Models/CachedLocation.cs`
-- Modify: `src/AetherPlan.Api/Data/AetherPlanDbContext.cs`
+- Modify: `src/SmartTripPlanner.Api/Models/CachedLocation.cs`
+- Modify: `src/SmartTripPlanner.Api/Data/SmartTripPlannerDbContext.cs`
 
 - [ ] **Step 1: Add new properties to CachedLocation**
 
-In `src/AetherPlan.Api/Models/CachedLocation.cs`, add `Address`, `SourceUrl`, `TripId`, and the `Trip` navigation property:
+In `src/SmartTripPlanner.Api/Models/CachedLocation.cs`, add `Address`, `SourceUrl`, `TripId`, and the `Trip` navigation property:
 
 ```csharp
-namespace AetherPlan.Api.Models;
+namespace SmartTripPlanner.Api.Models;
 
 public class CachedLocation
 {
@@ -79,7 +79,7 @@ public class CachedLocation
 
 - [ ] **Step 2: Add CachedLocation → Trip FK relationship in DbContext**
 
-In `src/AetherPlan.Api/Data/AetherPlanDbContext.cs`, add the relationship inside `OnModelCreating`:
+In `src/SmartTripPlanner.Api/Data/SmartTripPlannerDbContext.cs`, add the relationship inside `OnModelCreating`:
 
 ```csharp
 modelBuilder.Entity<CachedLocation>()
@@ -93,24 +93,24 @@ modelBuilder.Entity<CachedLocation>()
 
 Run:
 ```bash
-dotnet ef migrations add AddLocationExtensionFields --project src/AetherPlan.Api
-dotnet ef database update --project src/AetherPlan.Api
+dotnet ef migrations add AddLocationExtensionFields --project src/SmartTripPlanner.Api
+dotnet ef database update --project src/SmartTripPlanner.Api
 ```
 
 - [ ] **Step 4: Verify build passes**
 
-Run: `dotnet build AetherPlan.sln`
+Run: `dotnet build SmartTripPlanner.sln`
 Expected: Build succeeded, 0 errors
 
 - [ ] **Step 5: Run existing tests to ensure nothing broke**
 
-Run: `dotnet test AetherPlan.sln --verbosity quiet`
+Run: `dotnet test SmartTripPlanner.sln --verbosity quiet`
 Expected: All 58 tests pass
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/AetherPlan.Api/Models/CachedLocation.cs src/AetherPlan.Api/Data/AetherPlanDbContext.cs src/AetherPlan.Api/Migrations/
+git add src/SmartTripPlanner.Api/Models/CachedLocation.cs src/SmartTripPlanner.Api/Data/SmartTripPlannerDbContext.cs src/SmartTripPlanner.Api/Migrations/
 git commit -m "feat: extend CachedLocation with Address, SourceUrl, TripId"
 ```
 
@@ -119,15 +119,15 @@ git commit -m "feat: extend CachedLocation with Address, SourceUrl, TripId"
 ### Task 1: Create DTOs and ILocationService Interface
 
 **Files:**
-- Create: `src/AetherPlan.Api/Models/LocationDtos.cs`
-- Create: `src/AetherPlan.Api/Services/ILocationService.cs`
+- Create: `src/SmartTripPlanner.Api/Models/LocationDtos.cs`
+- Create: `src/SmartTripPlanner.Api/Services/ILocationService.cs`
 
 - [ ] **Step 1: Create DTOs**
 
-Create `src/AetherPlan.Api/Models/LocationDtos.cs`:
+Create `src/SmartTripPlanner.Api/Models/LocationDtos.cs`:
 
 ```csharp
-namespace AetherPlan.Api.Models;
+namespace SmartTripPlanner.Api.Models;
 
 public class SaveLocationRequest
 {
@@ -148,12 +148,12 @@ public class AssignLocationRequest
 
 - [ ] **Step 2: Create ILocationService interface**
 
-Create `src/AetherPlan.Api/Services/ILocationService.cs`:
+Create `src/SmartTripPlanner.Api/Services/ILocationService.cs`:
 
 ```csharp
-namespace AetherPlan.Api.Services;
+namespace SmartTripPlanner.Api.Services;
 
-using AetherPlan.Api.Models;
+using SmartTripPlanner.Api.Models;
 
 public interface ILocationService
 {
@@ -165,13 +165,13 @@ public interface ILocationService
 
 - [ ] **Step 3: Verify build**
 
-Run: `dotnet build AetherPlan.sln`
+Run: `dotnet build SmartTripPlanner.sln`
 Expected: Build succeeded
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/AetherPlan.Api/Models/LocationDtos.cs src/AetherPlan.Api/Services/ILocationService.cs
+git add src/SmartTripPlanner.Api/Models/LocationDtos.cs src/SmartTripPlanner.Api/Services/ILocationService.cs
 git commit -m "feat: add location DTOs and ILocationService interface"
 ```
 
@@ -180,33 +180,33 @@ git commit -m "feat: add location DTOs and ILocationService interface"
 ### Task 2: LocationService Tests (TDD Red Phase)
 
 **Files:**
-- Create: `src/AetherPlan.Tests/Services/LocationServiceTests.cs`
+- Create: `src/SmartTripPlanner.Tests/Services/LocationServiceTests.cs`
 
 - [ ] **Step 1: Write LocationService unit tests**
 
-Create `src/AetherPlan.Tests/Services/LocationServiceTests.cs`:
+Create `src/SmartTripPlanner.Tests/Services/LocationServiceTests.cs`:
 
 ```csharp
-namespace AetherPlan.Tests.Services;
+namespace SmartTripPlanner.Tests.Services;
 
-using AetherPlan.Api.Data;
-using AetherPlan.Api.Models;
-using AetherPlan.Api.Services;
+using SmartTripPlanner.Api.Data;
+using SmartTripPlanner.Api.Models;
+using SmartTripPlanner.Api.Services;
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
 
 public class LocationServiceTests : IDisposable
 {
-    private readonly AetherPlanDbContext _db;
+    private readonly SmartTripPlannerDbContext _db;
     private readonly ILlmClient _llmClient;
     private readonly LocationService _service;
 
     public LocationServiceTests()
     {
-        var options = new DbContextOptionsBuilder<AetherPlanDbContext>()
+        var options = new DbContextOptionsBuilder<SmartTripPlannerDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
-        _db = new AetherPlanDbContext(options);
+        _db = new SmartTripPlannerDbContext(options);
         _llmClient = Substitute.For<ILlmClient>();
         _service = new LocationService(_db, _llmClient);
     }
@@ -434,13 +434,13 @@ public class LocationServiceTests : IDisposable
 
 - [ ] **Step 2: Verify tests fail (class doesn't exist yet)**
 
-Run: `dotnet test AetherPlan.sln --verbosity quiet`
+Run: `dotnet test SmartTripPlanner.sln --verbosity quiet`
 Expected: Build error — `LocationService` type not found
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add src/AetherPlan.Tests/Services/LocationServiceTests.cs
+git add src/SmartTripPlanner.Tests/Services/LocationServiceTests.cs
 git commit -m "test: add LocationService unit tests (red phase)"
 ```
 
@@ -449,21 +449,21 @@ git commit -m "test: add LocationService unit tests (red phase)"
 ### Task 3: Implement LocationService (TDD Green Phase)
 
 **Files:**
-- Create: `src/AetherPlan.Api/Services/LocationService.cs`
+- Create: `src/SmartTripPlanner.Api/Services/LocationService.cs`
 
 - [ ] **Step 1: Implement LocationService**
 
-Create `src/AetherPlan.Api/Services/LocationService.cs`:
+Create `src/SmartTripPlanner.Api/Services/LocationService.cs`:
 
 ```csharp
-namespace AetherPlan.Api.Services;
+namespace SmartTripPlanner.Api.Services;
 
 using System.Text.Json;
-using AetherPlan.Api.Data;
-using AetherPlan.Api.Models;
+using SmartTripPlanner.Api.Data;
+using SmartTripPlanner.Api.Models;
 using Microsoft.EntityFrameworkCore;
 
-public class LocationService(AetherPlanDbContext db, ILlmClient llmClient) : ILocationService
+public class LocationService(SmartTripPlannerDbContext db, ILlmClient llmClient) : ILocationService
 {
     private const int MaxRawContentInputLength = 10_000;
     private const int MaxRawContentLength = 2000;
@@ -589,13 +589,13 @@ public class LocationService(AetherPlanDbContext db, ILlmClient llmClient) : ILo
 
 - [ ] **Step 2: Run tests to verify they pass**
 
-Run: `dotnet test AetherPlan.sln --verbosity quiet`
+Run: `dotnet test SmartTripPlanner.sln --verbosity quiet`
 Expected: All tests pass (58 existing + 13 new = 71 total)
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add src/AetherPlan.Api/Services/LocationService.cs
+git add src/SmartTripPlanner.Api/Services/LocationService.cs
 git commit -m "feat: implement LocationService with LLM fallback extraction"
 ```
 
@@ -604,18 +604,18 @@ git commit -m "feat: implement LocationService with LLM fallback extraction"
 ### Task 4: LocationsController Tests (TDD Red Phase)
 
 **Files:**
-- Create: `src/AetherPlan.Tests/Controllers/LocationsControllerTests.cs`
+- Create: `src/SmartTripPlanner.Tests/Controllers/LocationsControllerTests.cs`
 
 - [ ] **Step 1: Write LocationsController unit tests**
 
-Create `src/AetherPlan.Tests/Controllers/LocationsControllerTests.cs`:
+Create `src/SmartTripPlanner.Tests/Controllers/LocationsControllerTests.cs`:
 
 ```csharp
-namespace AetherPlan.Tests.Controllers;
+namespace SmartTripPlanner.Tests.Controllers;
 
-using AetherPlan.Api.Controllers;
-using AetherPlan.Api.Models;
-using AetherPlan.Api.Services;
+using SmartTripPlanner.Api.Controllers;
+using SmartTripPlanner.Api.Models;
+using SmartTripPlanner.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -728,13 +728,13 @@ public class LocationsControllerTests
 
 - [ ] **Step 2: Verify tests fail (controller doesn't exist yet)**
 
-Run: `dotnet test AetherPlan.sln --verbosity quiet`
+Run: `dotnet test SmartTripPlanner.sln --verbosity quiet`
 Expected: Build error — `LocationsController` type not found
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add src/AetherPlan.Tests/Controllers/LocationsControllerTests.cs
+git add src/SmartTripPlanner.Tests/Controllers/LocationsControllerTests.cs
 git commit -m "test: add LocationsController unit tests (red phase)"
 ```
 
@@ -743,18 +743,18 @@ git commit -m "test: add LocationsController unit tests (red phase)"
 ### Task 5: Implement LocationsController + Wire Up DI + CORS (TDD Green Phase)
 
 **Files:**
-- Create: `src/AetherPlan.Api/Controllers/LocationsController.cs`
-- Modify: `src/AetherPlan.Api/Program.cs`
+- Create: `src/SmartTripPlanner.Api/Controllers/LocationsController.cs`
+- Modify: `src/SmartTripPlanner.Api/Program.cs`
 
 - [ ] **Step 1: Implement LocationsController**
 
-Create `src/AetherPlan.Api/Controllers/LocationsController.cs`:
+Create `src/SmartTripPlanner.Api/Controllers/LocationsController.cs`:
 
 ```csharp
-namespace AetherPlan.Api.Controllers;
+namespace SmartTripPlanner.Api.Controllers;
 
-using AetherPlan.Api.Models;
-using AetherPlan.Api.Services;
+using SmartTripPlanner.Api.Models;
+using SmartTripPlanner.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
@@ -806,7 +806,7 @@ public class LocationsController(ILocationService locationService) : ControllerB
 
 - [ ] **Step 2: Register LocationService and add CORS in Program.cs**
 
-In `src/AetherPlan.Api/Program.cs`, add after the `IPersistenceService` registration:
+In `src/SmartTripPlanner.Api/Program.cs`, add after the `IPersistenceService` registration:
 
 ```csharp
 builder.Services.AddScoped<ILocationService, LocationService>();
@@ -832,13 +832,13 @@ app.UseCors("ExtensionPolicy");
 
 - [ ] **Step 3: Run all tests**
 
-Run: `dotnet test AetherPlan.sln --verbosity quiet`
+Run: `dotnet test SmartTripPlanner.sln --verbosity quiet`
 Expected: All tests pass (58 existing + 13 LocationService + 7 LocationsController = 78 total)
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/AetherPlan.Api/Controllers/LocationsController.cs src/AetherPlan.Api/Program.cs
+git add src/SmartTripPlanner.Api/Controllers/LocationsController.cs src/SmartTripPlanner.Api/Program.cs
 git commit -m "feat: add LocationsController with CORS and DI wiring"
 ```
 
@@ -849,19 +849,19 @@ git commit -m "feat: add LocationsController with CORS and DI wiring"
 ### Task 6: Extension Manifest + Scaffold
 
 **Files:**
-- Create: `src/AetherPlan.Extension/manifest.json`
-- Create: `src/AetherPlan.Extension/icons/` (placeholder)
+- Create: `src/SmartTripPlanner.Extension/manifest.json`
+- Create: `src/SmartTripPlanner.Extension/icons/` (placeholder)
 
 - [ ] **Step 1: Create manifest.json**
 
-Create `src/AetherPlan.Extension/manifest.json`:
+Create `src/SmartTripPlanner.Extension/manifest.json`:
 
 ```json
 {
   "manifest_version": 3,
-  "name": "AetherPlan Trip Saver",
+  "name": "SmartTripPlanner Trip Saver",
   "version": "1.0.0",
-  "description": "Save locations from any webpage to your AetherPlan trip planner",
+  "description": "Save locations from any webpage to your SmartTripPlanner trip planner",
   "permissions": ["activeTab", "tabs", "storage", "scripting"],
   "action": {
     "default_popup": "popup.html",
@@ -885,12 +885,12 @@ Create `src/AetherPlan.Extension/manifest.json`:
 
 - [ ] **Step 2: Create placeholder icons directory**
 
-Create `src/AetherPlan.Extension/icons/` directory. Add a simple 16x16, 48x48, and 128x128 PNG placeholder (solid color square is fine — can be replaced later).
+Create `src/SmartTripPlanner.Extension/icons/` directory. Add a simple 16x16, 48x48, and 128x128 PNG placeholder (solid color square is fine — can be replaced later).
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add src/AetherPlan.Extension/
+git add src/SmartTripPlanner.Extension/
 git commit -m "feat: add Chrome extension manifest and scaffold"
 ```
 
@@ -899,11 +899,11 @@ git commit -m "feat: add Chrome extension manifest and scaffold"
 ### Task 7: Structured Data Parser
 
 **Files:**
-- Create: `src/AetherPlan.Extension/parsers/structured.js`
+- Create: `src/SmartTripPlanner.Extension/parsers/structured.js`
 
 - [ ] **Step 1: Implement structured data parser**
 
-Create `src/AetherPlan.Extension/parsers/structured.js`:
+Create `src/SmartTripPlanner.Extension/parsers/structured.js`:
 
 ```javascript
 /**
@@ -1022,7 +1022,7 @@ function extractFromSchemaOrg(item) {
 - [ ] **Step 2: Commit**
 
 ```bash
-git add src/AetherPlan.Extension/parsers/structured.js
+git add src/SmartTripPlanner.Extension/parsers/structured.js
 git commit -m "feat: add structured data parser (schema.org, Open Graph, meta tags)"
 ```
 
@@ -1031,13 +1031,13 @@ git commit -m "feat: add structured data parser (schema.org, Open Graph, meta ta
 ### Task 8: Site-Specific Parsers
 
 **Files:**
-- Create: `src/AetherPlan.Extension/parsers/google-maps.js`
-- Create: `src/AetherPlan.Extension/parsers/yelp.js`
-- Create: `src/AetherPlan.Extension/parsers/tripadvisor.js`
+- Create: `src/SmartTripPlanner.Extension/parsers/google-maps.js`
+- Create: `src/SmartTripPlanner.Extension/parsers/yelp.js`
+- Create: `src/SmartTripPlanner.Extension/parsers/tripadvisor.js`
 
 - [ ] **Step 1: Implement Google Maps parser**
 
-Create `src/AetherPlan.Extension/parsers/google-maps.js`:
+Create `src/SmartTripPlanner.Extension/parsers/google-maps.js`:
 
 ```javascript
 /**
@@ -1095,7 +1095,7 @@ function mapGoogleCategory(googleCat) {
 
 - [ ] **Step 2: Implement Yelp parser**
 
-Create `src/AetherPlan.Extension/parsers/yelp.js`:
+Create `src/SmartTripPlanner.Extension/parsers/yelp.js`:
 
 ```javascript
 /**
@@ -1135,7 +1135,7 @@ function parseYelp() {
 
 - [ ] **Step 3: Implement TripAdvisor parser**
 
-Create `src/AetherPlan.Extension/parsers/tripadvisor.js`:
+Create `src/SmartTripPlanner.Extension/parsers/tripadvisor.js`:
 
 ```javascript
 /**
@@ -1170,7 +1170,7 @@ function parseTripAdvisor() {
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/AetherPlan.Extension/parsers/
+git add src/SmartTripPlanner.Extension/parsers/
 git commit -m "feat: add site-specific parsers (Google Maps, Yelp, TripAdvisor)"
 ```
 
@@ -1179,20 +1179,20 @@ git commit -m "feat: add site-specific parsers (Google Maps, Yelp, TripAdvisor)"
 ### Task 9: Content Script
 
 **Files:**
-- Create: `src/AetherPlan.Extension/content.js`
+- Create: `src/SmartTripPlanner.Extension/content.js`
 
 - [ ] **Step 1: Implement content script**
 
-Create `src/AetherPlan.Extension/content.js`:
+Create `src/SmartTripPlanner.Extension/content.js`:
 
 ```javascript
 // Content script — injected on demand by the popup via chrome.scripting.executeScript
 // Runs the parsing pipeline and returns extracted location data.
 // Idempotency guard: skip if already injected (prevents duplicate listeners)
-if (window.__aetherplanInjected) {
+if (window.__smarttripplannerInjected) {
   // Already injected — do nothing (listener is already registered)
 } else {
-  window.__aetherplanInjected = true;
+  window.__smarttripplannerInjected = true;
 
 function extractLocation() {
   // Tier 1: Site-specific parsers (highest quality)
@@ -1245,7 +1245,7 @@ Note: The content script will be injected programmatically along with the parser
 - [ ] **Step 2: Commit**
 
 ```bash
-git add src/AetherPlan.Extension/content.js
+git add src/SmartTripPlanner.Extension/content.js
 git commit -m "feat: add content script with parsing pipeline"
 ```
 
@@ -1254,11 +1254,11 @@ git commit -m "feat: add content script with parsing pipeline"
 ### Task 10: Background Service Worker
 
 **Files:**
-- Create: `src/AetherPlan.Extension/background.js`
+- Create: `src/SmartTripPlanner.Extension/background.js`
 
 - [ ] **Step 1: Implement background service worker**
 
-Create `src/AetherPlan.Extension/background.js`:
+Create `src/SmartTripPlanner.Extension/background.js`:
 
 ```javascript
 const DEFAULT_API_URL = 'http://localhost:5000';
@@ -1336,7 +1336,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 - [ ] **Step 2: Commit**
 
 ```bash
-git add src/AetherPlan.Extension/background.js
+git add src/SmartTripPlanner.Extension/background.js
 git commit -m "feat: add background service worker for API communication"
 ```
 
@@ -1345,13 +1345,13 @@ git commit -m "feat: add background service worker for API communication"
 ### Task 11: Popup UI
 
 **Files:**
-- Create: `src/AetherPlan.Extension/popup.html`
-- Create: `src/AetherPlan.Extension/popup.css`
-- Create: `src/AetherPlan.Extension/popup.js`
+- Create: `src/SmartTripPlanner.Extension/popup.html`
+- Create: `src/SmartTripPlanner.Extension/popup.css`
+- Create: `src/SmartTripPlanner.Extension/popup.js`
 
 - [ ] **Step 1: Create popup.html**
 
-Create `src/AetherPlan.Extension/popup.html`:
+Create `src/SmartTripPlanner.Extension/popup.html`:
 
 ```html
 <!DOCTYPE html>
@@ -1359,12 +1359,12 @@ Create `src/AetherPlan.Extension/popup.html`:
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AetherPlan</title>
+  <title>SmartTripPlanner</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <div id="app">
-    <h1>AetherPlan</h1>
+    <h1>SmartTripPlanner</h1>
 
     <div id="loading">
       <p id="loading-text">Scanning page...</p>
@@ -1405,7 +1405,7 @@ Create `src/AetherPlan.Extension/popup.html`:
 
 - [ ] **Step 2: Create popup.css**
 
-Create `src/AetherPlan.Extension/popup.css`:
+Create `src/SmartTripPlanner.Extension/popup.css`:
 
 ```css
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1466,7 +1466,7 @@ h1 {
 
 - [ ] **Step 3: Create popup.js**
 
-Create `src/AetherPlan.Extension/popup.js`:
+Create `src/SmartTripPlanner.Extension/popup.js`:
 
 ```javascript
 const loadingEl = document.getElementById('loading');
@@ -1629,7 +1629,7 @@ init();
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/AetherPlan.Extension/popup.html src/AetherPlan.Extension/popup.css src/AetherPlan.Extension/popup.js
+git add src/SmartTripPlanner.Extension/popup.html src/SmartTripPlanner.Extension/popup.css src/SmartTripPlanner.Extension/popup.js
 git commit -m "feat: add popup UI with save to ideas and add to trip actions"
 ```
 
@@ -1638,19 +1638,19 @@ git commit -m "feat: add popup UI with save to ideas and add to trip actions"
 ### Task 12: Options Page
 
 **Files:**
-- Create: `src/AetherPlan.Extension/options.html`
-- Create: `src/AetherPlan.Extension/options.js`
+- Create: `src/SmartTripPlanner.Extension/options.html`
+- Create: `src/SmartTripPlanner.Extension/options.js`
 
 - [ ] **Step 1: Create options.html**
 
-Create `src/AetherPlan.Extension/options.html`:
+Create `src/SmartTripPlanner.Extension/options.html`:
 
 ```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>AetherPlan Settings</title>
+  <title>SmartTripPlanner Settings</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 24px; max-width: 480px; }
     h1 { font-size: 18px; margin-bottom: 16px; }
@@ -1662,7 +1662,7 @@ Create `src/AetherPlan.Extension/options.html`:
   </style>
 </head>
 <body>
-  <h1>AetherPlan Settings</h1>
+  <h1>SmartTripPlanner Settings</h1>
   <label for="api-url">API Base URL</label>
   <input type="text" id="api-url" placeholder="http://localhost:5000">
   <button id="save">Save</button>
@@ -1674,7 +1674,7 @@ Create `src/AetherPlan.Extension/options.html`:
 
 - [ ] **Step 2: Create options.js**
 
-Create `src/AetherPlan.Extension/options.js`:
+Create `src/SmartTripPlanner.Extension/options.js`:
 
 ```javascript
 const apiUrlInput = document.getElementById('api-url');
@@ -1696,7 +1696,7 @@ saveBtn.addEventListener('click', () => {
 - [ ] **Step 3: Commit**
 
 ```bash
-git add src/AetherPlan.Extension/options.html src/AetherPlan.Extension/options.js
+git add src/SmartTripPlanner.Extension/options.html src/SmartTripPlanner.Extension/options.js
 git commit -m "feat: add extension options page for API URL configuration"
 ```
 
@@ -1708,7 +1708,7 @@ git commit -m "feat: add extension options page for API URL configuration"
 
 Run:
 ```bash
-dotnet test AetherPlan.sln --verbosity quiet
+dotnet test SmartTripPlanner.sln --verbosity quiet
 ```
 Expected: All tests pass
 
@@ -1716,7 +1716,7 @@ Expected: All tests pass
 
 Run:
 ```bash
-dotnet run --project src/AetherPlan.Api
+dotnet run --project src/SmartTripPlanner.Api
 ```
 Expected: API starts on configured port
 
@@ -1750,7 +1750,7 @@ Expected: `201` with LLM-extracted location JSON (name, address, category popula
 1. Open `chrome://extensions/`
 2. Enable "Developer mode"
 3. Click "Load unpacked"
-4. Select `src/AetherPlan.Extension/`
+4. Select `src/SmartTripPlanner.Extension/`
 5. Verify extension appears with no errors
 
 - [ ] **Step 7: Test extension on a Yelp page**
@@ -1765,6 +1765,6 @@ Expected: `201` with LLM-extracted location JSON (name, address, category popula
 - [ ] **Step 8: Final commit**
 
 ```bash
-git add src/AetherPlan.Extension/
+git add src/SmartTripPlanner.Extension/
 git commit -m "feat: complete browser extension v1"
 ```

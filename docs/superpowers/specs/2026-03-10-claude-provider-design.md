@@ -128,7 +128,7 @@ If neither is set and provider is `claude`, log an error and throw at startup.
 | `Tools/ToolDefinitions.cs` | Update types |
 | `Program.cs` | Provider switch logic, config restructure |
 | `appsettings.json` | Restructure under `Llm` section |
-| `AetherPlan.Api.csproj` | Add `Anthropic` NuGet |
+| `SmartTripPlanner.Api.csproj` | Add `Anthropic` NuGet |
 | All test files | Update mocked interface + model types |
 | `ClaudeClientTests.cs` | Create (new tests) |
 

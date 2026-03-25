@@ -1,17 +1,17 @@
-# AetherPlan Browser Extension — Design Spec
+# SmartTripPlanner Browser Extension — Design Spec
 
 ## Goal
 
-A Chrome extension that lets you save locations from any webpage to your AetherPlan trip planner. Click the extension on a restaurant page, blog post, or travel site, and the location is saved to your ideas list or assigned to a specific trip.
+A Chrome extension that lets you save locations from any webpage to your SmartTripPlanner trip planner. Click the extension on a restaurant page, blog post, or travel site, and the location is saved to your ideas list or assigned to a specific trip.
 
 ## Architecture
 
-Manifest V3 Chrome extension (works on all Chromium browsers: Chrome, Edge, Brave) communicating with new REST endpoints on the AetherPlan API. The extension is a thin client — scrapes location data from the current page and sends it to the API. LLM-based extraction runs server-side as a fallback when structured scraping fails.
+Manifest V3 Chrome extension (works on all Chromium browsers: Chrome, Edge, Brave) communicating with new REST endpoints on the SmartTripPlanner API. The extension is a thin client — scrapes location data from the current page and sends it to the API. LLM-based extraction runs server-side as a fallback when structured scraping fails.
 
 ## Tech Stack
 
 - **Extension:** Manifest V3, vanilla JS, Chrome APIs
-- **API:** ASP.NET Core (existing AetherPlan.Api project)
+- **API:** ASP.NET Core (existing SmartTripPlanner.Api project)
 - **Storage:** Existing SQLite/EF Core (`CachedLocation` table, extended)
 - **LLM Fallback:** `ILlmClient` (whichever provider is configured — Ollama or Claude)
 
@@ -189,7 +189,7 @@ browser-extension/
     └── icon128.png
 ```
 
-Lives in the repo at `src/AetherPlan.Extension/`.
+Lives in the repo at `src/SmartTripPlanner.Extension/`.
 
 **Manifest permissions:** `activeTab`, `storage`, `scripting`.
 

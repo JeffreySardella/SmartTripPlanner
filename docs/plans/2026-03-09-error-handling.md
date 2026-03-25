@@ -13,20 +13,20 @@
 ## Task 0: OllamaUnavailableException
 
 **Files:**
-- Create: `src/AetherPlan.Api/Exceptions/OllamaUnavailableException.cs`
-- Modify: `src/AetherPlan.Api/Services/OllamaClient.cs`
-- Create: `src/AetherPlan.Tests/Services/OllamaClientErrorTests.cs`
+- Create: `src/SmartTripPlanner.Api/Exceptions/OllamaUnavailableException.cs`
+- Modify: `src/SmartTripPlanner.Api/Services/OllamaClient.cs`
+- Create: `src/SmartTripPlanner.Tests/Services/OllamaClientErrorTests.cs`
 
 **Step 1: Write the failing test**
 
 ```csharp
-// src/AetherPlan.Tests/Services/OllamaClientErrorTests.cs
-namespace AetherPlan.Tests.Services;
+// src/SmartTripPlanner.Tests/Services/OllamaClientErrorTests.cs
+namespace SmartTripPlanner.Tests.Services;
 
 using System.Net;
-using AetherPlan.Api.Exceptions;
-using AetherPlan.Api.Models;
-using AetherPlan.Api.Services;
+using SmartTripPlanner.Api.Exceptions;
+using SmartTripPlanner.Api.Models;
+using SmartTripPlanner.Api.Services;
 
 public class OllamaClientErrorTests
 {
@@ -99,7 +99,7 @@ internal class StatusCodeHandler(HttpStatusCode statusCode) : HttpMessageHandler
 **Step 2: Run tests to verify they fail**
 
 ```bash
-dotnet test src/AetherPlan.Tests --filter "FullyQualifiedName~OllamaClientErrorTests" -v minimal
+dotnet test src/SmartTripPlanner.Tests --filter "FullyQualifiedName~OllamaClientErrorTests" -v minimal
 ```
 
 Expected: FAIL — `OllamaUnavailableException` does not exist.
@@ -107,8 +107,8 @@ Expected: FAIL — `OllamaUnavailableException` does not exist.
 **Step 3: Create the exception**
 
 ```csharp
-// src/AetherPlan.Api/Exceptions/OllamaUnavailableException.cs
-namespace AetherPlan.Api.Exceptions;
+// src/SmartTripPlanner.Api/Exceptions/OllamaUnavailableException.cs
+namespace SmartTripPlanner.Api.Exceptions;
 
 public class OllamaUnavailableException : Exception
 {
@@ -164,12 +164,12 @@ public async Task<OllamaChatResponse> ChatAsync(List<OllamaMessage> messages, Li
 }
 ```
 
-Add `using AetherPlan.Api.Exceptions;` at the top of OllamaClient.cs.
+Add `using SmartTripPlanner.Api.Exceptions;` at the top of OllamaClient.cs.
 
 **Step 5: Run tests to verify they pass**
 
 ```bash
-dotnet test src/AetherPlan.Tests --filter "FullyQualifiedName~OllamaClientErrorTests" -v minimal
+dotnet test src/SmartTripPlanner.Tests --filter "FullyQualifiedName~OllamaClientErrorTests" -v minimal
 ```
 
 Expected: All 3 tests PASS.
@@ -177,7 +177,7 @@ Expected: All 3 tests PASS.
 **Step 6: Commit**
 
 ```bash
-git add src/AetherPlan.Api/Exceptions/ src/AetherPlan.Api/Services/OllamaClient.cs src/AetherPlan.Tests/Services/OllamaClientErrorTests.cs
+git add src/SmartTripPlanner.Api/Exceptions/ src/SmartTripPlanner.Api/Services/OllamaClient.cs src/SmartTripPlanner.Tests/Services/OllamaClientErrorTests.cs
 git commit -m "feat: add OllamaUnavailableException and error handling in OllamaClient"
 ```
 
@@ -186,18 +186,18 @@ git commit -m "feat: add OllamaUnavailableException and error handling in Ollama
 ## Task 1: AgentService Tool Error Handling
 
 **Files:**
-- Modify: `src/AetherPlan.Api/Services/AgentService.cs`
-- Create: `src/AetherPlan.Tests/Services/AgentServiceErrorTests.cs`
+- Modify: `src/SmartTripPlanner.Api/Services/AgentService.cs`
+- Create: `src/SmartTripPlanner.Tests/Services/AgentServiceErrorTests.cs`
 
 **Step 1: Write the failing tests**
 
 ```csharp
-// src/AetherPlan.Tests/Services/AgentServiceErrorTests.cs
-namespace AetherPlan.Tests.Services;
+// src/SmartTripPlanner.Tests/Services/AgentServiceErrorTests.cs
+namespace SmartTripPlanner.Tests.Services;
 
-using AetherPlan.Api.Exceptions;
-using AetherPlan.Api.Models;
-using AetherPlan.Api.Services;
+using SmartTripPlanner.Api.Exceptions;
+using SmartTripPlanner.Api.Models;
+using SmartTripPlanner.Api.Services;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Microsoft.Extensions.Logging;
@@ -312,7 +312,7 @@ public class AgentServiceErrorTests
 **Step 2: Run tests to verify they fail**
 
 ```bash
-dotnet test src/AetherPlan.Tests --filter "FullyQualifiedName~AgentServiceErrorTests" -v minimal
+dotnet test src/SmartTripPlanner.Tests --filter "FullyQualifiedName~AgentServiceErrorTests" -v minimal
 ```
 
 Expected: FAIL — RunAsync currently throws instead of catching.
@@ -381,12 +381,12 @@ public async Task<string> RunAsync(string userRequest, int maxIterations = 10)
 }
 ```
 
-Add `using AetherPlan.Api.Exceptions;` at the top of AgentService.cs.
+Add `using SmartTripPlanner.Api.Exceptions;` at the top of AgentService.cs.
 
 **Step 4: Run tests to verify they pass**
 
 ```bash
-dotnet test src/AetherPlan.Tests --filter "FullyQualifiedName~AgentServiceErrorTests" -v minimal
+dotnet test src/SmartTripPlanner.Tests --filter "FullyQualifiedName~AgentServiceErrorTests" -v minimal
 ```
 
 Expected: All 3 tests PASS.
@@ -394,7 +394,7 @@ Expected: All 3 tests PASS.
 **Step 5: Verify all existing tests still pass**
 
 ```bash
-dotnet test AetherPlan.sln -v minimal
+dotnet test SmartTripPlanner.sln -v minimal
 ```
 
 Expected: All 22+ tests PASS.
@@ -402,7 +402,7 @@ Expected: All 22+ tests PASS.
 **Step 6: Commit**
 
 ```bash
-git add src/AetherPlan.Api/Services/AgentService.cs src/AetherPlan.Tests/Services/AgentServiceErrorTests.cs
+git add src/SmartTripPlanner.Api/Services/AgentService.cs src/SmartTripPlanner.Tests/Services/AgentServiceErrorTests.cs
 git commit -m "feat: add error handling in AgentService for tool failures and Ollama outages"
 ```
 
@@ -411,17 +411,17 @@ git commit -m "feat: add error handling in AgentService for tool failures and Ol
 ## Task 2: TripController Error Responses
 
 **Files:**
-- Modify: `src/AetherPlan.Api/Controllers/TripController.cs`
-- Create: `src/AetherPlan.Tests/Controllers/TripControllerTests.cs`
+- Modify: `src/SmartTripPlanner.Api/Controllers/TripController.cs`
+- Create: `src/SmartTripPlanner.Tests/Controllers/TripControllerTests.cs`
 
 **Step 1: Write the failing tests**
 
 ```csharp
-// src/AetherPlan.Tests/Controllers/TripControllerTests.cs
-namespace AetherPlan.Tests.Controllers;
+// src/SmartTripPlanner.Tests/Controllers/TripControllerTests.cs
+namespace SmartTripPlanner.Tests.Controllers;
 
-using AetherPlan.Api.Controllers;
-using AetherPlan.Api.Services;
+using SmartTripPlanner.Api.Controllers;
+using SmartTripPlanner.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -465,7 +465,7 @@ public class TripControllerTests
 **Step 2: Run tests to verify they fail**
 
 ```bash
-dotnet test src/AetherPlan.Tests --filter "FullyQualifiedName~TripControllerTests" -v minimal
+dotnet test src/SmartTripPlanner.Tests --filter "FullyQualifiedName~TripControllerTests" -v minimal
 ```
 
 Expected: The 500 test FAILS because TripController currently has no try/catch.
@@ -473,10 +473,10 @@ Expected: The 500 test FAILS because TripController currently has no try/catch.
 **Step 3: Update TripController with error handling**
 
 ```csharp
-// src/AetherPlan.Api/Controllers/TripController.cs
-namespace AetherPlan.Api.Controllers;
+// src/SmartTripPlanner.Api/Controllers/TripController.cs
+namespace SmartTripPlanner.Api.Controllers;
 
-using AetherPlan.Api.Services;
+using SmartTripPlanner.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
@@ -518,7 +518,7 @@ public TripControllerTests()
 **Step 4: Run tests to verify they pass**
 
 ```bash
-dotnet test src/AetherPlan.Tests --filter "FullyQualifiedName~TripControllerTests" -v minimal
+dotnet test src/SmartTripPlanner.Tests --filter "FullyQualifiedName~TripControllerTests" -v minimal
 ```
 
 Expected: All 2 tests PASS.
@@ -526,7 +526,7 @@ Expected: All 2 tests PASS.
 **Step 5: Commit**
 
 ```bash
-git add src/AetherPlan.Api/Controllers/TripController.cs src/AetherPlan.Tests/Controllers/TripControllerTests.cs
+git add src/SmartTripPlanner.Api/Controllers/TripController.cs src/SmartTripPlanner.Tests/Controllers/TripControllerTests.cs
 git commit -m "feat: add error handling in TripController with structured error responses"
 ```
 
@@ -537,7 +537,7 @@ git commit -m "feat: add error handling in TripController with structured error 
 **Step 1: Run all tests**
 
 ```bash
-dotnet test AetherPlan.sln -v minimal
+dotnet test SmartTripPlanner.sln -v minimal
 ```
 
 Expected: All 27+ tests pass (19 existing + 3 OllamaClient error + 3 AgentService error + 2 TripController).
@@ -545,7 +545,7 @@ Expected: All 27+ tests pass (19 existing + 3 OllamaClient error + 3 AgentServic
 **Step 2: Verify clean build**
 
 ```bash
-dotnet build AetherPlan.sln
+dotnet build SmartTripPlanner.sln
 ```
 
 Expected: 0 errors, 0 warnings.

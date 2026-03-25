@@ -10,7 +10,7 @@
 
 **Spec:** `docs/superpowers/specs/2026-03-10-claude-provider-design.md`
 
-**Deviation from spec:** The spec mentions using the `Anthropic` NuGet package (official C# SDK). This plan deliberately uses raw `HttpClient` instead, for consistency with the existing `OllamaClient` pattern. This avoids introducing an SDK dependency, keeps full control of JSON serialization (System.Text.Json only per project convention), and reuses the existing `FakeHttpHandler` test infrastructure. The `AetherPlan.Api.csproj` does NOT add the `Anthropic` NuGet package.
+**Deviation from spec:** The spec mentions using the `Anthropic` NuGet package (official C# SDK). This plan deliberately uses raw `HttpClient` instead, for consistency with the existing `OllamaClient` pattern. This avoids introducing an SDK dependency, keeps full control of JSON serialization (System.Text.Json only per project convention), and reuses the existing `FakeHttpHandler` test infrastructure. The `SmartTripPlanner.Api.csproj` does NOT add the `Anthropic` NuGet package.
 
 ---
 
@@ -30,7 +30,7 @@
 | `Tools/ToolDefinitions.cs` | Modify | Use `LlmTool`/`LlmFunction` types |
 | `Program.cs` | Modify | Provider switch + config restructure |
 | `appsettings.json` | Modify | Restructure under `Llm` section |
-| `AetherPlan.Api.csproj` | Modify | Add `InternalsVisibleTo` for tests |
+| `SmartTripPlanner.Api.csproj` | Modify | Add `InternalsVisibleTo` for tests |
 | `Tests/Services/ClaudeClientTests.cs` | Create | Claude translation + HTTP tests |
 | All existing test files | Modify | Use `ILlmClient` + `Llm*` types |
 
@@ -41,24 +41,24 @@
 ### Task 0: Rename Model Types
 
 **Files:**
-- Create: `src/AetherPlan.Api/Models/LlmModels.cs`
-- Delete: `src/AetherPlan.Api/Models/OllamaModels.cs`
-- Modify: `src/AetherPlan.Api/Services/OllamaClient.cs`
-- Modify: `src/AetherPlan.Api/Services/AgentService.cs`
-- Modify: `src/AetherPlan.Api/Tools/ToolDefinitions.cs`
-- Modify: `src/AetherPlan.Tests/Services/AgentServiceTests.cs`
-- Modify: `src/AetherPlan.Tests/Services/AgentServiceErrorTests.cs`
-- Modify: `src/AetherPlan.Tests/Services/AgentServicePersistenceTests.cs`
-- Modify: `src/AetherPlan.Tests/Services/OllamaClientTests.cs`
-- Modify: `src/AetherPlan.Tests/Services/OllamaClientErrorTests.cs`
-- Modify: `src/AetherPlan.Tests/Tools/ToolDefinitionsTests.cs`
+- Create: `src/SmartTripPlanner.Api/Models/LlmModels.cs`
+- Delete: `src/SmartTripPlanner.Api/Models/OllamaModels.cs`
+- Modify: `src/SmartTripPlanner.Api/Services/OllamaClient.cs`
+- Modify: `src/SmartTripPlanner.Api/Services/AgentService.cs`
+- Modify: `src/SmartTripPlanner.Api/Tools/ToolDefinitions.cs`
+- Modify: `src/SmartTripPlanner.Tests/Services/AgentServiceTests.cs`
+- Modify: `src/SmartTripPlanner.Tests/Services/AgentServiceErrorTests.cs`
+- Modify: `src/SmartTripPlanner.Tests/Services/AgentServicePersistenceTests.cs`
+- Modify: `src/SmartTripPlanner.Tests/Services/OllamaClientTests.cs`
+- Modify: `src/SmartTripPlanner.Tests/Services/OllamaClientErrorTests.cs`
+- Modify: `src/SmartTripPlanner.Tests/Tools/ToolDefinitionsTests.cs`
 
 - [ ] **Step 1: Create `LlmModels.cs` with renamed types**
 
-Create `src/AetherPlan.Api/Models/LlmModels.cs`:
+Create `src/SmartTripPlanner.Api/Models/LlmModels.cs`:
 
 ```csharp
-namespace AetherPlan.Api.Models;
+namespace SmartTripPlanner.Api.Models;
 
 using System.Text.Json.Serialization;
 
@@ -160,24 +160,24 @@ Apply these find/replace operations across all `.cs` files in `src/`:
 | `OllamaFunctionCall` | `LlmFunctionCall` |
 | `OllamaChatResponse` | `LlmChatResponse` |
 
-Files to update (every file that imports `AetherPlan.Api.Models` and uses these types):
-- `src/AetherPlan.Api/Services/OllamaClient.cs`
-- `src/AetherPlan.Api/Services/AgentService.cs`
-- `src/AetherPlan.Api/Tools/ToolDefinitions.cs`
-- `src/AetherPlan.Tests/Services/AgentServiceTests.cs`
-- `src/AetherPlan.Tests/Services/AgentServiceErrorTests.cs`
-- `src/AetherPlan.Tests/Services/AgentServicePersistenceTests.cs`
-- `src/AetherPlan.Tests/Services/OllamaClientTests.cs`
-- `src/AetherPlan.Tests/Services/OllamaClientErrorTests.cs`
-- `src/AetherPlan.Tests/Tools/ToolDefinitionsTests.cs`
+Files to update (every file that imports `SmartTripPlanner.Api.Models` and uses these types):
+- `src/SmartTripPlanner.Api/Services/OllamaClient.cs`
+- `src/SmartTripPlanner.Api/Services/AgentService.cs`
+- `src/SmartTripPlanner.Api/Tools/ToolDefinitions.cs`
+- `src/SmartTripPlanner.Tests/Services/AgentServiceTests.cs`
+- `src/SmartTripPlanner.Tests/Services/AgentServiceErrorTests.cs`
+- `src/SmartTripPlanner.Tests/Services/AgentServicePersistenceTests.cs`
+- `src/SmartTripPlanner.Tests/Services/OllamaClientTests.cs`
+- `src/SmartTripPlanner.Tests/Services/OllamaClientErrorTests.cs`
+- `src/SmartTripPlanner.Tests/Tools/ToolDefinitionsTests.cs`
 
 - [ ] **Step 3: Delete `OllamaModels.cs`**
 
-Delete: `src/AetherPlan.Api/Models/OllamaModels.cs`
+Delete: `src/SmartTripPlanner.Api/Models/OllamaModels.cs`
 
 - [ ] **Step 4: Verify tests pass**
 
-Run: `dotnet test src/AetherPlan.Tests/AetherPlan.Tests.csproj`
+Run: `dotnet test src/SmartTripPlanner.Tests/SmartTripPlanner.Tests.csproj`
 Expected: All 42 tests PASS
 
 - [ ] **Step 5: Commit**
@@ -196,21 +196,21 @@ tool result correlation."
 ### Task 1: Replace IOllamaClient with ILlmClient
 
 **Files:**
-- Create: `src/AetherPlan.Api/Services/ILlmClient.cs`
-- Delete: `src/AetherPlan.Api/Services/IOllamaClient.cs`
-- Modify: `src/AetherPlan.Api/Services/OllamaClient.cs`
-- Modify: `src/AetherPlan.Api/Services/AgentService.cs`
-- Modify: `src/AetherPlan.Api/Program.cs`
+- Create: `src/SmartTripPlanner.Api/Services/ILlmClient.cs`
+- Delete: `src/SmartTripPlanner.Api/Services/IOllamaClient.cs`
+- Modify: `src/SmartTripPlanner.Api/Services/OllamaClient.cs`
+- Modify: `src/SmartTripPlanner.Api/Services/AgentService.cs`
+- Modify: `src/SmartTripPlanner.Api/Program.cs`
 - Modify: All test files that mock `IOllamaClient`
 
 - [ ] **Step 1: Create `ILlmClient.cs`**
 
-Create `src/AetherPlan.Api/Services/ILlmClient.cs`:
+Create `src/SmartTripPlanner.Api/Services/ILlmClient.cs`:
 
 ```csharp
-namespace AetherPlan.Api.Services;
+namespace SmartTripPlanner.Api.Services;
 
-using AetherPlan.Api.Models;
+using SmartTripPlanner.Api.Models;
 
 public interface ILlmClient
 {
@@ -220,7 +220,7 @@ public interface ILlmClient
 
 - [ ] **Step 2: Update OllamaClient to implement ILlmClient**
 
-In `src/AetherPlan.Api/Services/OllamaClient.cs`, change the class declaration from:
+In `src/SmartTripPlanner.Api/Services/OllamaClient.cs`, change the class declaration from:
 
 ```csharp
 public class OllamaClient(HttpClient httpClient, string model) : IOllamaClient
@@ -234,7 +234,7 @@ public class OllamaClient(HttpClient httpClient, string model) : ILlmClient
 
 - [ ] **Step 3: Update AgentService constructor**
 
-In `src/AetherPlan.Api/Services/AgentService.cs`, change from:
+In `src/SmartTripPlanner.Api/Services/AgentService.cs`, change from:
 
 ```csharp
 public class AgentService(
@@ -258,7 +258,7 @@ Also update the log message from `"Ollama is unavailable"` to `"LLM service is u
 
 - [ ] **Step 4: Update Program.cs registration**
 
-In `src/AetherPlan.Api/Program.cs`, change from:
+In `src/SmartTripPlanner.Api/Program.cs`, change from:
 
 ```csharp
 builder.Services.AddHttpClient<IOllamaClient, OllamaClient>((httpClient, sp) =>
@@ -274,25 +274,25 @@ builder.Services.AddHttpClient<ILlmClient, OllamaClient>((httpClient, sp) =>
 
 In every test file that uses `Substitute.For<IOllamaClient>()`, change to `Substitute.For<ILlmClient>()`:
 
-- `src/AetherPlan.Tests/Services/AgentServiceTests.cs`:
+- `src/SmartTripPlanner.Tests/Services/AgentServiceTests.cs`:
   - `private readonly IOllamaClient _ollamaClient = Substitute.For<IOllamaClient>();` → `private readonly ILlmClient _llmClient = Substitute.For<ILlmClient>();`
   - `_sut = new AgentService(_ollamaClient, ...)` → `_sut = new AgentService(_llmClient, ...)`
   - All `_ollamaClient.ChatAsync(...)` → `_llmClient.ChatAsync(...)`
 
-- `src/AetherPlan.Tests/Services/AgentServiceErrorTests.cs`: Same mock/field replacements. Also update the assertion in `RunAsync_OllamaUnavailable_ReturnsUserFriendlyMessage` from `Assert.Contains("Ollama", result)` to `Assert.Contains("LLM", result)` to match the updated error message. Rename the test method to `RunAsync_LlmUnavailable_ReturnsUserFriendlyMessage`.
+- `src/SmartTripPlanner.Tests/Services/AgentServiceErrorTests.cs`: Same mock/field replacements. Also update the assertion in `RunAsync_OllamaUnavailable_ReturnsUserFriendlyMessage` from `Assert.Contains("Ollama", result)` to `Assert.Contains("LLM", result)` to match the updated error message. Rename the test method to `RunAsync_LlmUnavailable_ReturnsUserFriendlyMessage`.
 
-- `src/AetherPlan.Tests/Services/AgentServicePersistenceTests.cs`:
+- `src/SmartTripPlanner.Tests/Services/AgentServicePersistenceTests.cs`:
   - `var ollamaClient = Substitute.For<IOllamaClient>();` → `var llmClient = Substitute.For<ILlmClient>();`
   - `var sut = new AgentService(ollamaClient, ...)` → `var sut = new AgentService(llmClient, ...)`
   - `ollamaClient.ChatAsync(...)` → `llmClient.ChatAsync(...)`
 
 - [ ] **Step 6: Delete `IOllamaClient.cs`**
 
-Delete: `src/AetherPlan.Api/Services/IOllamaClient.cs`
+Delete: `src/SmartTripPlanner.Api/Services/IOllamaClient.cs`
 
 - [ ] **Step 7: Verify tests pass**
 
-Run: `dotnet test src/AetherPlan.Tests/AetherPlan.Tests.csproj`
+Run: `dotnet test src/SmartTripPlanner.Tests/SmartTripPlanner.Tests.csproj`
 Expected: All 42 tests PASS
 
 - [ ] **Step 8: Commit**
@@ -310,19 +310,19 @@ implements ILlmClient. AgentService depends on ILlmClient."
 ### Task 2: Rename Exception
 
 **Files:**
-- Create: `src/AetherPlan.Api/Exceptions/LlmUnavailableException.cs`
-- Delete: `src/AetherPlan.Api/Exceptions/OllamaUnavailableException.cs`
-- Modify: `src/AetherPlan.Api/Services/OllamaClient.cs`
-- Modify: `src/AetherPlan.Api/Services/AgentService.cs`
-- Modify: `src/AetherPlan.Tests/Services/AgentServiceErrorTests.cs`
-- Modify: `src/AetherPlan.Tests/Services/OllamaClientErrorTests.cs`
+- Create: `src/SmartTripPlanner.Api/Exceptions/LlmUnavailableException.cs`
+- Delete: `src/SmartTripPlanner.Api/Exceptions/OllamaUnavailableException.cs`
+- Modify: `src/SmartTripPlanner.Api/Services/OllamaClient.cs`
+- Modify: `src/SmartTripPlanner.Api/Services/AgentService.cs`
+- Modify: `src/SmartTripPlanner.Tests/Services/AgentServiceErrorTests.cs`
+- Modify: `src/SmartTripPlanner.Tests/Services/OllamaClientErrorTests.cs`
 
 - [ ] **Step 1: Create `LlmUnavailableException.cs`**
 
-Create `src/AetherPlan.Api/Exceptions/LlmUnavailableException.cs`:
+Create `src/SmartTripPlanner.Api/Exceptions/LlmUnavailableException.cs`:
 
 ```csharp
-namespace AetherPlan.Api.Exceptions;
+namespace SmartTripPlanner.Api.Exceptions;
 
 public class LlmUnavailableException : Exception
 {
@@ -333,21 +333,21 @@ public class LlmUnavailableException : Exception
 
 - [ ] **Step 2: Delete `OllamaUnavailableException.cs`**
 
-Delete: `src/AetherPlan.Api/Exceptions/OllamaUnavailableException.cs`
+Delete: `src/SmartTripPlanner.Api/Exceptions/OllamaUnavailableException.cs`
 
 - [ ] **Step 3: Update all references**
 
 Find/replace `OllamaUnavailableException` → `LlmUnavailableException` in:
-- `src/AetherPlan.Api/Services/OllamaClient.cs` (3 throw sites)
-- `src/AetherPlan.Api/Services/AgentService.cs` (1 catch block)
-- `src/AetherPlan.Tests/Services/AgentServiceErrorTests.cs` (1 reference)
-- `src/AetherPlan.Tests/Services/OllamaClientErrorTests.cs` (3 Assert.ThrowsAsync)
+- `src/SmartTripPlanner.Api/Services/OllamaClient.cs` (3 throw sites)
+- `src/SmartTripPlanner.Api/Services/AgentService.cs` (1 catch block)
+- `src/SmartTripPlanner.Tests/Services/AgentServiceErrorTests.cs` (1 reference)
+- `src/SmartTripPlanner.Tests/Services/OllamaClientErrorTests.cs` (3 Assert.ThrowsAsync)
 
 Note: The find/replace in `OllamaClientErrorTests.cs` will also rename the test method names themselves (e.g., `ChatAsync_ConnectionRefused_ThrowsOllamaUnavailableException` → `ChatAsync_ConnectionRefused_ThrowsLlmUnavailableException`). This is intentional.
 
 - [ ] **Step 4: Verify tests pass**
 
-Run: `dotnet test src/AetherPlan.Tests/AetherPlan.Tests.csproj`
+Run: `dotnet test src/SmartTripPlanner.Tests/SmartTripPlanner.Tests.csproj`
 Expected: All 42 tests PASS
 
 - [ ] **Step 5: Commit**
@@ -362,17 +362,17 @@ git commit -m "refactor: rename OllamaUnavailableException to LlmUnavailableExce
 ### Task 3: Restructure Configuration
 
 **Files:**
-- Modify: `src/AetherPlan.Api/appsettings.json`
-- Modify: `src/AetherPlan.Api/Program.cs`
+- Modify: `src/SmartTripPlanner.Api/appsettings.json`
+- Modify: `src/SmartTripPlanner.Api/Program.cs`
 
 - [ ] **Step 1: Update `appsettings.json`**
 
-Replace the `"Ollama"` section with the new `"Llm"` structure in `src/AetherPlan.Api/appsettings.json`:
+Replace the `"Ollama"` section with the new `"Llm"` structure in `src/SmartTripPlanner.Api/appsettings.json`:
 
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Data Source=AetherPlan.db"
+    "DefaultConnection": "Data Source=SmartTripPlanner.db"
   },
   "Logging": {
     "LogLevel": {
@@ -398,7 +398,7 @@ Replace the `"Ollama"` section with the new `"Llm"` structure in `src/AetherPlan
 
 - [ ] **Step 2: Update Program.cs config reads**
 
-In `src/AetherPlan.Api/Program.cs`, update the Ollama config paths from:
+In `src/SmartTripPlanner.Api/Program.cs`, update the Ollama config paths from:
 
 ```csharp
 httpClient.BaseAddress = new Uri(builder.Configuration["Ollama:BaseUrl"] ?? "http://localhost:11434");
@@ -416,7 +416,7 @@ var model = builder.Configuration["Llm:Ollama:Model"] ?? "qwen3.5:35b-a3b-q4_K_M
 
 - [ ] **Step 3: Verify tests pass**
 
-Run: `dotnet test src/AetherPlan.Tests/AetherPlan.Tests.csproj`
+Run: `dotnet test src/SmartTripPlanner.Tests/SmartTripPlanner.Tests.csproj`
 Expected: All 42 tests PASS
 
 - [ ] **Step 4: Commit**
@@ -436,16 +436,16 @@ sections in preparation for provider switch."
 ### Task 4: Write ClaudeClient Tests (TDD Red Phase)
 
 **Files:**
-- Modify: `src/AetherPlan.Api/AetherPlan.Api.csproj`
-- Create: `src/AetherPlan.Tests/Services/ClaudeClientTests.cs`
+- Modify: `src/SmartTripPlanner.Api/SmartTripPlanner.Api.csproj`
+- Create: `src/SmartTripPlanner.Tests/Services/ClaudeClientTests.cs`
 
 - [ ] **Step 1: Add InternalsVisibleTo**
 
-In `src/AetherPlan.Api/AetherPlan.Api.csproj`, add inside the `<Project>` element:
+In `src/SmartTripPlanner.Api/SmartTripPlanner.Api.csproj`, add inside the `<Project>` element:
 
 ```xml
 <ItemGroup>
-  <InternalsVisibleTo Include="AetherPlan.Tests" />
+  <InternalsVisibleTo Include="SmartTripPlanner.Tests" />
 </ItemGroup>
 ```
 
@@ -453,16 +453,16 @@ In `src/AetherPlan.Api/AetherPlan.Api.csproj`, add inside the `<Project>` elemen
 
 Note: `FakeHttpHandler` is already defined in `OllamaClientTests.cs`, and `FaultyHttpHandler`/`StatusCodeHandler` are defined in `OllamaClientErrorTests.cs`. These are `internal` classes in the same test assembly and namespace, so they are accessible from `ClaudeClientTests.cs` without redeclaration.
 
-Create `src/AetherPlan.Tests/Services/ClaudeClientTests.cs`:
+Create `src/SmartTripPlanner.Tests/Services/ClaudeClientTests.cs`:
 
 ```csharp
-namespace AetherPlan.Tests.Services;
+namespace SmartTripPlanner.Tests.Services;
 
 using System.Net;
 using System.Text.Json;
-using AetherPlan.Api.Exceptions;
-using AetherPlan.Api.Models;
-using AetherPlan.Api.Services;
+using SmartTripPlanner.Api.Exceptions;
+using SmartTripPlanner.Api.Models;
+using SmartTripPlanner.Api.Services;
 
 public class ClaudeClientTests
 {
@@ -854,7 +854,7 @@ internal class HeaderCapturingHandler(string responseJson) : HttpMessageHandler
 
 - [ ] **Step 3: Verify tests fail (ClaudeClient doesn't exist yet)**
 
-Run: `dotnet test src/AetherPlan.Tests/AetherPlan.Tests.csproj`
+Run: `dotnet test src/SmartTripPlanner.Tests/SmartTripPlanner.Tests.csproj`
 Expected: FAIL — `ClaudeClient` type does not exist. New tests fail, existing 42 tests still pass.
 
 - [ ] **Step 4: Commit**
@@ -872,19 +872,19 @@ mapping, response parsing, header verification, and error handling."
 ### Task 5: Implement ClaudeClient (TDD Green Phase)
 
 **Files:**
-- Create: `src/AetherPlan.Api/Services/ClaudeClient.cs`
-- Modify: `src/AetherPlan.Api/Services/AgentService.cs` (pass ToolCallId)
+- Create: `src/SmartTripPlanner.Api/Services/ClaudeClient.cs`
+- Modify: `src/SmartTripPlanner.Api/Services/AgentService.cs` (pass ToolCallId)
 
 - [ ] **Step 1: Create `ClaudeClient.cs`**
 
-Create `src/AetherPlan.Api/Services/ClaudeClient.cs`:
+Create `src/SmartTripPlanner.Api/Services/ClaudeClient.cs`:
 
 ```csharp
-namespace AetherPlan.Api.Services;
+namespace SmartTripPlanner.Api.Services;
 
 using System.Text.Json;
-using AetherPlan.Api.Exceptions;
-using AetherPlan.Api.Models;
+using SmartTripPlanner.Api.Exceptions;
+using SmartTripPlanner.Api.Models;
 
 public class ClaudeClient(HttpClient httpClient, string model, string apiKey) : ILlmClient
 {
@@ -1081,7 +1081,7 @@ public class ClaudeClient(HttpClient httpClient, string model, string apiKey) : 
 
 - [ ] **Step 2: Update AgentService to pass ToolCallId**
 
-In `src/AetherPlan.Api/Services/AgentService.cs`, update the tool result message creation in `RunAsync` from:
+In `src/SmartTripPlanner.Api/Services/AgentService.cs`, update the tool result message creation in `RunAsync` from:
 
 ```csharp
 messages.Add(new LlmMessage
@@ -1106,7 +1106,7 @@ This passes the tool call ID through. `toolCall.Id` is null for Ollama responses
 
 - [ ] **Step 3: Verify all tests pass**
 
-Run: `dotnet test src/AetherPlan.Tests/AetherPlan.Tests.csproj`
+Run: `dotnet test src/SmartTripPlanner.Tests/SmartTripPlanner.Tests.csproj`
 Expected: ALL tests PASS (42 existing + 16 new ClaudeClient tests = 58 total)
 
 - [ ] **Step 4: Commit**
@@ -1126,11 +1126,11 @@ message role mapping). Pass ToolCallId through AgentService."
 ### Task 6: Provider Switch in Program.cs
 
 **Files:**
-- Modify: `src/AetherPlan.Api/Program.cs`
+- Modify: `src/SmartTripPlanner.Api/Program.cs`
 
 - [ ] **Step 1: Replace the hardcoded OllamaClient registration with provider switch**
 
-In `src/AetherPlan.Api/Program.cs`, replace the entire `AddHttpClient<ILlmClient, OllamaClient>` block with:
+In `src/SmartTripPlanner.Api/Program.cs`, replace the entire `AddHttpClient<ILlmClient, OllamaClient>` block with:
 
 ```csharp
 var llmProvider = builder.Configuration["Llm:Provider"]?.ToLowerInvariant() ?? "ollama";
@@ -1173,12 +1173,12 @@ else
 
 - [ ] **Step 2: Verify tests pass**
 
-Run: `dotnet test src/AetherPlan.Tests/AetherPlan.Tests.csproj`
+Run: `dotnet test src/SmartTripPlanner.Tests/SmartTripPlanner.Tests.csproj`
 Expected: ALL tests PASS
 
 - [ ] **Step 3: Verify the app builds and starts (smoke test)**
 
-Run: `dotnet build src/AetherPlan.Api/AetherPlan.Api.csproj`
+Run: `dotnet build src/SmartTripPlanner.Api/SmartTripPlanner.Api.csproj`
 Expected: Build succeeded, 0 errors
 
 - [ ] **Step 4: Commit**
@@ -1201,7 +1201,7 @@ Defaults to Ollama when provider is unset."
 
 1. Set the API key:
    ```bash
-   cd src/AetherPlan.Api
+   cd src/SmartTripPlanner.Api
    dotnet user-secrets set "Claude:ApiKey" "sk-ant-your-key-here"
    ```
    Or set environment variable: `CLAUDE_API_KEY=sk-ant-your-key-here`
