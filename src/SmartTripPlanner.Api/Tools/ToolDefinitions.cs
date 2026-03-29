@@ -51,7 +51,7 @@ public static class ToolDefinitions
             Function = new LlmFunction
             {
                 Name = "add_trip_event",
-                Description = "Creates a Google Calendar event with location and description",
+                Description = "Creates a trip event and saves it to the calendar and database",
                 Parameters = new
                 {
                     type = "object",
@@ -61,9 +61,9 @@ public static class ToolDefinitions
                         location = new { type = "string", description = "Event location name or address" },
                         start = new { type = "string", description = "ISO 8601 start time" },
                         end = new { type = "string", description = "ISO 8601 end time" },
-                        description = new { type = "string", description = "Event description (optional)" },
-                        latitude = new { type = "number", description = "Location latitude (optional)" },
-                        longitude = new { type = "number", description = "Location longitude (optional)" }
+                        description = new { type = "string", description = "Event description with travel notes (optional)" },
+                        latitude = new { type = "number", description = "Location latitude" },
+                        longitude = new { type = "number", description = "Location longitude" }
                     },
                     required = new[] { "summary", "location", "start", "end" }
                 }
@@ -74,7 +74,7 @@ public static class ToolDefinitions
             Function = new LlmFunction
             {
                 Name = "search_area",
-                Description = "Uses internal knowledge to suggest attractions, restaurants, and activities in a given area",
+                Description = "Searches for cached locations in the database for a given area and category",
                 Parameters = new
                 {
                     type = "object",
@@ -82,9 +82,102 @@ public static class ToolDefinitions
                     {
                         area = new { type = "string", description = "City, neighborhood, or region to search" },
                         category = new { type = "string", description = "Category: attractions, restaurants, activities, hotels" },
-                        limit = new { type = "integer", description = "Max number of suggestions (default 5)" }
+                        limit = new { type = "integer", description = "Max results (default 5)" }
                     },
                     required = new[] { "area" }
+                }
+            }
+        },
+        new LlmTool
+        {
+            Function = new LlmFunction
+            {
+                Name = "get_weather",
+                Description = "Gets a 7-day weather forecast for a location. Use to check conditions for trip dates.",
+                Parameters = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        latitude = new { type = "number", description = "Location latitude" },
+                        longitude = new { type = "number", description = "Location longitude" },
+                        date = new { type = "string", description = "Start date for forecast (ISO 8601, e.g. 2026-04-15)" }
+                    },
+                    required = new[] { "latitude", "longitude", "date" }
+                }
+            }
+        },
+        new LlmTool
+        {
+            Function = new LlmFunction
+            {
+                Name = "delete_trip_event",
+                Description = "Removes a trip event by its ID from the itinerary",
+                Parameters = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        event_id = new { type = "integer", description = "The event ID to delete" }
+                    },
+                    required = new[] { "event_id" }
+                }
+            }
+        },
+        new LlmTool
+        {
+            Function = new LlmFunction
+            {
+                Name = "get_trip",
+                Description = "Retrieves a saved trip and all its events by trip ID. Use to review or modify existing itineraries.",
+                Parameters = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        trip_id = new { type = "integer", description = "The trip ID to retrieve" }
+                    },
+                    required = new[] { "trip_id" }
+                }
+            }
+        },
+        new LlmTool
+        {
+            Function = new LlmFunction
+            {
+                Name = "search_restaurants",
+                Description = "Searches OpenStreetMap for real restaurants and cafes near a location. Returns names, coordinates, cuisine types, and addresses.",
+                Parameters = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        latitude = new { type = "number", description = "Search center latitude" },
+                        longitude = new { type = "number", description = "Search center longitude" },
+                        radius_meters = new { type = "integer", description = "Search radius in meters (default 2000)" },
+                        limit = new { type = "integer", description = "Max results (default 10)" }
+                    },
+                    required = new[] { "latitude", "longitude" }
+                }
+            }
+        },
+        new LlmTool
+        {
+            Function = new LlmFunction
+            {
+                Name = "search_hotels",
+                Description = "Searches OpenStreetMap for real hotels and accommodations near a location. Returns names, coordinates, star ratings, and addresses.",
+                Parameters = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        latitude = new { type = "number", description = "Search center latitude" },
+                        longitude = new { type = "number", description = "Search center longitude" },
+                        radius_meters = new { type = "integer", description = "Search radius in meters (default 5000)" },
+                        limit = new { type = "integer", description = "Max results (default 10)" }
+                    },
+                    required = new[] { "latitude", "longitude" }
                 }
             }
         }

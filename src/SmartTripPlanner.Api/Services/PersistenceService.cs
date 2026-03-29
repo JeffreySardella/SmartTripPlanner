@@ -98,4 +98,13 @@ public class PersistenceService(SmartTripPlannerDbContext db) : IPersistenceServ
         return await db.CachedLocations
             .FirstOrDefaultAsync(l => l.Name == name);
     }
+
+    public async Task<bool> DeleteTripEventAsync(int eventId)
+    {
+        var evt = await db.TripEvents.FindAsync(eventId);
+        if (evt is null) return false;
+        db.TripEvents.Remove(evt);
+        await db.SaveChangesAsync();
+        return true;
+    }
 }

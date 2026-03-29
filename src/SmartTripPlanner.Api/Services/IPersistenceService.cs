@@ -12,4 +12,5 @@ public interface IPersistenceService
     Task<List<CachedLocation>> SearchCachedLocationsAsync(string area, string? category = null);
     Task CacheLocationsAsync(List<CachedLocation> locations);
     Task<CachedLocation?> GetCachedLocationByNameAsync(string name);
+    Task<bool> DeleteTripEventAsync(int eventId);
 }

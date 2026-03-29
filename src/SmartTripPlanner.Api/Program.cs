@@ -35,7 +35,7 @@ else
     Log.Warning("Google Calendar not configured — client_secret.json not found at {Path}. Calendar features disabled.", credentialPath);
 }
 
-builder.Services.AddScoped<ICalendarService>(sp =>
+builder.Services.AddSingleton<ICalendarService>(sp =>
 {
     var api = sp.GetService<Google.Apis.Calendar.v3.CalendarService>();
     var logger = sp.GetRequiredService<ILogger<CalendarService>>();
@@ -79,6 +79,9 @@ else
     });
 }
 
+builder.Services.AddSingleton<OllamaManagementService>();
+builder.Services.AddScoped<WeatherService>();
+builder.Services.AddScoped<PoiService>();
 builder.Services.AddScoped<IAgentService, AgentService>();
 builder.Services.AddScoped<IPersistenceService, PersistenceService>();
 builder.Services.AddScoped<ILocationService, LocationService>();
@@ -91,6 +94,7 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader());
 });
 
+builder.Services.AddHttpClient();
 builder.Services.AddControllers();
 
 builder.Services.AddRazorComponents()

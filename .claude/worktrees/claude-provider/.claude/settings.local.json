@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add docs/superpowers/specs/2026-03-10-browser-extension-design.md)",
+      "Bash(git commit:*)",
+      "Bash(cd:*)",
+      "Bash(cd /c/Users/Jeff/Documents/Github_new/SmartTripPlanner/.worktrees/browser-extension/src/AetherPlan.Extension/icons && python3 << 'EOF'\nimport struct\n\n# Create a minimal valid PNG: 1x1 pixel, solid blue\n# PNG signature + IHDR chunk \\(1x1\\) + IDAT \\(blue pixel\\) + IEND\n\ndef create_minimal_png\\(filename\\):\n    # PNG signature\n    png_sig = b'\\\\x89PNG\\\\r\\\\n\\\\x1a\\\\n'\n    \n    # IHDR chunk: 1x1, 8-bit RGB\n    ihdr_data = struct.pack\\('>IIBBBBB', 1, 1, 8, 2, 0, 0, 0\\)\n    ihdr_crc = 0x90773546  # Pre-calculated CRC for minimal 1x1 IHDR\n    ihdr = b'IHDR' + ihdr_data\n    ihdr_chunk = struct.pack\\('>I', 13\\) + ihdr + struct.pack\\('>I', ihdr_crc\\)\n    \n    # IDAT chunk: minimal compressed data for 1x1 blue pixel \\(00 00 00 FF = blue RGB\\)\n    idat_data = b'\\\\x08\\\\x99c\\\\xf8\\\\x0f\\\\x00\\\\x00\\\\x01\\\\x00\\\\x01'\n    idat_crc = 0x8e3c3c5b\n    idat_chunk = struct.pack\\('>I', len\\(idat_data\\)\\) + b'IDAT' + idat_data + struct.pack\\('>I', idat_crc\\)\n    \n    # IEND chunk\n    iend_crc = 0xae426082\n    iend_chunk = struct.pack\\('>I', 0\\) + b'IEND' + struct.pack\\('>I', iend_crc\\)\n    \n    png_data = png_sig + ihdr_chunk + idat_chunk + iend_chunk\n    \n    with open\\(filename, 'wb'\\) as f:\n        f.write\\(png_data\\)\n\ncreate_minimal_png\\('icon16.png'\\)\ncreate_minimal_png\\('icon48.png'\\)\ncreate_minimal_png\\('icon128.png'\\)\n\nprint\\(\"Created icon16.png, icon48.png, icon128.png\"\\)\nEOF)",
+      "Bash(cd /c/Users/Jeff/Documents/Github_new/SmartTripPlanner/.worktrees/browser-extension && git push -u origin feature/browser-extension 2>&1)",
+      "Bash(echo not found:*)",
+      "Bash(cd /c/Users/Jeff/Documents/Github_new/SmartTripPlanner/.worktrees/browser-extension && git push 2>&1)"
+    ]
+  }
+}

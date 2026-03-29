@@ -1,36 +1,133 @@
 @page "/"
 @inject IAgentService AgentService
+@inject IJSRuntime JS
 
-<PageTitle>SmartTripPlanner - Chat</PageTitle>
+<PageTitle>SmartTripPlanner | Plan Trip</PageTitle>
 
-<div class="chat-container">
-    <div class="messages">
+<div class="flex-1 mt-4 mb-28 px-10 overflow-y-auto space-y-8 flex flex-col max-w-5xl mx-auto w-full">
+    @if (_messages.Count == 0)
+    {
+        <div class="flex flex-col items-center justify-center min-h-[600px] text-center space-y-8">
+            <div class="relative">
+                <div class="absolute inset-0 bg-primary/20 blur-3xl rounded-full"></div>
+                <span class="material-symbols-outlined text-8xl text-primary-fixed-dim relative animate-pulse">auto_awesome</span>
+            </div>
+            <div class="space-y-3">
+                <h2 class="text-4xl font-black tracking-tight text-on-surface">Where shall we drift next?</h2>
+                <p class="text-on-surface-variant text-lg max-w-md mx-auto">Your local AI travel agent is ready. Powered by Ollama, no cloud required.</p>
+            </div>
+            <div class="flex flex-wrap justify-center gap-4">
+                <button @onclick='() => FillAndSend("Plan a 3-day trip to Tokyo. I like temples, ramen, and nightlife. Packed pace.")'
+                        class="group relative flex items-center gap-4 bg-surface-container-high p-2 pr-6 rounded-full hover:bg-surface-container-highest transition-all duration-300 border border-outline-variant/10">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-secondary to-error flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white text-lg">temple_buddhist</span>
+                    </div>
+                    <span class="text-sm font-medium">3 days in Tokyo — temples & ramen</span>
+                </button>
+                <button @onclick='() => FillAndSend("Plan a weekend trip to Portland, OR. I like craft beer, hiking, and food carts. Relaxed pace.")'
+                        class="group relative flex items-center gap-4 bg-surface-container-high p-2 pr-6 rounded-full hover:bg-surface-container-highest transition-all duration-300 border border-outline-variant/10">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-tertiary-dim to-tertiary flex items-center justify-center">
+                        <span class="material-symbols-outlined text-on-tertiary text-lg">forest</span>
+                    </div>
+                    <span class="text-sm font-medium">Weekend in Portland — beer & hiking</span>
+                </button>
+                <button @onclick='() => FillAndSend("Plan a 2-day trip to Austin, TX. Focus on BBQ, live music, and Barton Springs. Moderate pace.")'
+                        class="group relative flex items-center gap-4 bg-surface-container-high p-2 pr-6 rounded-full hover:bg-surface-container-highest transition-all duration-300 border border-outline-variant/10">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary-dim flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white text-lg">music_note</span>
+                    </div>
+                    <span class="text-sm font-medium">2 days in Austin — BBQ & live music</span>
+                </button>
+            </div>
+        </div>
+    }
+    else
+    {
         @foreach (var msg in _messages)
         {
-            <div class="message @msg.Role">
-                <span class="role">@msg.Role</span>
-                <div class="content">@msg.Content</div>
-            </div>
+            @if (msg.Role == "user")
+            {
+                <div class="flex justify-end">
+                    <div class="bg-primary text-on-primary-container px-6 py-4 rounded-2xl rounded-tr-none max-w-lg shadow-xl shadow-primary/10">
+                        <p class="text-sm leading-relaxed">@msg.Content</p>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="flex justify-start gap-4">
+                    <div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center shrink-0 border border-primary/20">
+                        <span class="material-symbols-outlined text-primary-fixed-dim text-xl" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+                    </div>
+                    <div class="space-y-2 max-w-2xl bg-surface-container/40 p-6 rounded-2xl rounded-tl-none border border-outline-variant/10">
+                        <div class="prose prose-invert text-sm leading-relaxed">
+                            @((MarkupString)FormatContent(msg.Content))
+                        </div>
+                    </div>
+                </div>
+            }
         }
-        @if (_isLoading)
-        {
-            <div class="message assistant">
-                <span class="role">assistant</span>
-                <div class="content loading">Thinking...</div>
-            </div>
-        }
-    </div>
+    }
 
-    <form @onsubmit="SendMessage" class="input-area">
-        <input @bind="_input" @bind:event="oninput" placeholder="Plan a trip to..." disabled="@_isLoading" />
-        <button type="submit" disabled="@(_isLoading || string.IsNullOrWhiteSpace(_input))">Send</button>
+    @if (_isLoading)
+    {
+        <div class="flex justify-start gap-4">
+            <div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center shrink-0 border border-primary/20">
+                <span class="material-symbols-outlined text-primary-fixed-dim text-xl" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+            </div>
+            <div class="bg-surface-container/40 px-6 py-4 rounded-2xl rounded-tl-none border border-outline-variant/10">
+                <div class="flex items-center gap-3">
+                    <div class="w-2 h-2 bg-primary-dim rounded-full animate-bounce"></div>
+                    <div class="w-2 h-2 bg-primary-dim rounded-full animate-bounce [animation-delay:0.15s]"></div>
+                    <div class="w-2 h-2 bg-primary-dim rounded-full animate-bounce [animation-delay:0.3s]"></div>
+                    <span class="text-xs text-outline ml-1">@FormatElapsed(_elapsedSec)</span>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="fixed bottom-0 right-0 w-[calc(100%-16rem)] p-6 bg-surface/80 backdrop-blur-md z-40">
+    <form @onsubmit="SendMessage" class="max-w-4xl mx-auto flex items-center gap-4 bg-surface-container-high p-2 pl-6 rounded-xl border border-outline-variant/10 shadow-2xl">
+        <input @bind="_input" @bind:event="oninput" disabled="@_isLoading"
+               class="flex-1 bg-transparent border-none focus:ring-0 text-on-surface placeholder:text-outline/60 text-sm py-3"
+               placeholder="Type your travel dreams here..." autocomplete="off" />
+        <div class="flex items-center gap-2 pr-2">
+            <button type="submit" disabled="@(_isLoading || string.IsNullOrWhiteSpace(_input))"
+                    class="bg-gradient-to-br from-primary to-primary-dim text-on-primary w-11 h-11 flex items-center justify-center rounded-lg hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20 disabled:opacity-30 disabled:hover:scale-100">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">send</span>
+            </button>
+        </div>
     </form>
+    <div class="text-center mt-3">
+        <p class="text-[10px] text-outline uppercase tracking-[0.3em]">SmartTripPlanner — Local Ollama Inference</p>
+    </div>
+</div>
+
+<div class="absolute top-0 left-0 w-full h-[3px] bg-surface-container">
+    <div class="h-full bg-gradient-to-r from-primary via-tertiary to-secondary w-[65%] shadow-[0_0_10px_rgba(163,166,255,0.5)]"></div>
 </div>
 
 @code {
     private readonly List<ChatMessage> _messages = [];
     private string _input = string.Empty;
     private bool _isLoading;
+    private double _elapsedSec;
+    private Timer? _timer;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("eval", "if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission()");
+        }
+    }
+
+    private async Task FillAndSend(string text)
+    {
+        _input = text;
+        await SendMessage();
+    }
 
     private async Task SendMessage()
     {
@@ -38,24 +135,108 @@
 
         var userMessage = _input.Trim();
         _input = string.Empty;
-
         _messages.Add(new ChatMessage("user", userMessage));
         _isLoading = true;
+        _elapsedSec = 0;
         StateHasChanged();
+
+        // Tick the timer every second
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        _timer = new Timer(_ =>
+        {
+            _elapsedSec = sw.Elapsed.TotalSeconds;
+            InvokeAsync(StateHasChanged);
+        }, null, 1000, 1000);
 
         try
         {
             var response = await AgentService.RunAsync(userMessage);
             _messages.Add(new ChatMessage("assistant", response));
+
+            await JS.InvokeVoidAsync("eval",
+                "if ('Notification' in window && Notification.permission === 'granted' && document.hidden) " +
+                "new Notification('SmartTripPlanner', { body: 'Your trip itinerary is ready!' })");
         }
         catch (Exception ex)
         {
-            _messages.Add(new ChatMessage("assistant", $"Error: {ex.Message}"));
+            _messages.Add(new ChatMessage("assistant", $"Something went wrong: {ex.Message}"));
         }
         finally
         {
+            _timer?.Dispose();
+            _timer = null;
             _isLoading = false;
         }
+    }
+
+    private static string FormatElapsed(double sec)
+    {
+        if (sec < 60) return $"{(int)sec}s";
+        return $"{(int)(sec / 60)}m {(int)(sec % 60)}s";
+    }
+
+    private static string FormatContent(string content)
+    {
+        var lines = content.Split('\n');
+        var result = new System.Text.StringBuilder();
+        var inTable = false;
+        var headerDone = false;
+
+        foreach (var rawLine in lines)
+        {
+            var line = rawLine.TrimEnd();
+
+            if (line.StartsWith('|') && line.EndsWith('|'))
+            {
+                if (line.Replace("|", "").Replace("-", "").Replace(" ", "").Length == 0)
+                { headerDone = true; continue; }
+
+                if (!inTable)
+                { result.Append("<table class='w-full mt-4 mb-4 text-sm border-collapse rounded-xl overflow-hidden'>"); inTable = true; headerDone = false; }
+
+                var cells = line.Split('|', StringSplitOptions.TrimEntries).Where(c => c.Length > 0).ToArray();
+                if (!headerDone)
+                {
+                    result.Append("<thead><tr class='bg-surface-container-highest'>");
+                    foreach (var cell in cells)
+                        result.Append($"<th class='p-3 text-left font-bold text-[10px] uppercase tracking-widest text-primary'>{FormatInline(cell)}</th>");
+                    result.Append("</tr></thead><tbody class='bg-surface-container-low/50'>");
+                    headerDone = true;
+                }
+                else
+                {
+                    result.Append("<tr class='border-b border-outline-variant/10'>");
+                    foreach (var cell in cells)
+                        result.Append($"<td class='p-3'>{FormatInline(cell)}</td>");
+                    result.Append("</tr>");
+                }
+                continue;
+            }
+
+            if (inTable) { result.Append("</tbody></table>"); inTable = false; headerDone = false; }
+
+            if (string.IsNullOrWhiteSpace(line)) { result.Append("<br/>"); continue; }
+            if (line.StartsWith("### ")) { result.Append($"<h4 class='text-base font-bold text-tertiary-fixed tracking-tight mt-4 mb-1'>{FormatInline(line[4..])}</h4>"); continue; }
+            if (line.StartsWith("## ")) { result.Append($"<h3 class='text-xl font-bold text-tertiary-fixed tracking-tight mt-4 mb-2'>{FormatInline(line[3..])}</h3>"); continue; }
+            if (line.StartsWith("# ")) { result.Append($"<h2 class='text-2xl font-black text-on-surface tracking-tight mt-4 mb-2'>{FormatInline(line[2..])}</h2>"); continue; }
+            if (line.StartsWith("- ") || line.StartsWith("* "))
+            {
+                result.Append($"<div class='flex gap-2 my-1'><span class='text-tertiary mt-1'>•</span><span>{FormatInline(line[2..])}</span></div>");
+                continue;
+            }
+            if (line.StartsWith("---")) { result.Append("<hr class='border-outline-variant/20 my-3'/>"); continue; }
+
+            result.Append($"<p class='my-1'>{FormatInline(line)}</p>");
+        }
+
+        if (inTable) result.Append("</tbody></table>");
+        return result.ToString();
+    }
+
+    private static string FormatInline(string text)
+    {
+        text = System.Text.RegularExpressions.Regex.Replace(text, @"\*\*(.+?)\*\*", "<strong class='text-on-surface font-semibold'>$1</strong>");
+        return text;
     }
 
     private record ChatMessage(string Role, string Content);

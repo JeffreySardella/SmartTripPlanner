@@ -1,13 +1,77 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="dark" lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SmartTripPlanner</title>
     <base href="/" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     <HeadOutlet @rendermode="RenderMode.InteractiveServer" />
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "background": "#0c0e14",
+                        "surface-variant": "#23262e",
+                        "on-surface": "#e5e4ed",
+                        "inverse-on-surface": "#53555c",
+                        "primary-dim": "#6063ee",
+                        "on-primary-fixed-variant": "#0e009d",
+                        "surface-dim": "#0c0e14",
+                        "secondary-fixed-dim": "#ffb196",
+                        "surface-container-high": "#1d1f27",
+                        "primary-container": "#9396ff",
+                        "on-tertiary": "#00685c",
+                        "primary-fixed": "#9396ff",
+                        "tertiary": "#c6fff3",
+                        "primary": "#a3a6ff",
+                        "on-secondary-container": "#ffd2c3",
+                        "tertiary-fixed": "#65fde6",
+                        "surface-container-low": "#11131a",
+                        "on-secondary": "#491300",
+                        "secondary": "#fe7e4f",
+                        "primary-fixed-dim": "#8387ff",
+                        "surface-tint": "#a3a6ff",
+                        "outline-variant": "#46484f",
+                        "error": "#ff6e84",
+                        "on-error": "#490013",
+                        "surface-container-lowest": "#000000",
+                        "tertiary-dim": "#48e5d0",
+                        "secondary-dim": "#f7794b",
+                        "surface": "#0c0e14",
+                        "surface-bright": "#292c35",
+                        "on-primary": "#0f00a4",
+                        "on-primary-container": "#0a0081",
+                        "tertiary-container": "#65fde6",
+                        "on-background": "#e5e4ed",
+                        "secondary-fixed": "#ffc4b1",
+                        "surface-container": "#171921",
+                        "surface-container-highest": "#23262e",
+                        "on-error-container": "#ffb2b9",
+                        "outline": "#74757d",
+                        "on-surface-variant": "#aaaab3"
+                    },
+                    fontFamily: { "headline": ["Inter"], "body": ["Inter"], "label": ["Inter"] },
+                    borderRadius: { "DEFAULT": "0.75rem", "lg": "0.75rem", "xl": "1rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .vram-gradient { background: linear-gradient(90deg, #a3a6ff 0%, #fe7e4f 100%); }
+        .trip-pulse-gradient { background: linear-gradient(90deg, #a3a6ff 0%, #fe7e4f 100%); }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #0c0e14; }
+        ::-webkit-scrollbar-thumb { background: #1d1f27; border-radius: 10px; }
+    </style>
 </head>
-<body>
+<body class="bg-background text-on-surface antialiased overflow-hidden">
     <Routes @rendermode="RenderMode.InteractiveServer" />
     <script src="_framework/blazor.web.js"></script>
 </body>

@@ -17,7 +17,11 @@ public class AgentServiceTests
     public AgentServiceTests()
     {
         var logger = Substitute.For<ILogger<AgentService>>();
-        _sut = new AgentService(_llmClient, _calendarService, _travelService, _persistenceService, logger);
+        var env = Substitute.For<Microsoft.AspNetCore.Hosting.IWebHostEnvironment>();
+        env.ContentRootPath.Returns(Path.GetTempPath());
+        var weather = new WeatherService(Substitute.For<IHttpClientFactory>(), Substitute.For<ILogger<WeatherService>>());
+        var poi = new PoiService(Substitute.For<IHttpClientFactory>(), Substitute.For<ILogger<PoiService>>());
+        _sut = new AgentService(_llmClient, _calendarService, _travelService, _persistenceService, weather, poi, env, logger);
     }
 
     [Fact]

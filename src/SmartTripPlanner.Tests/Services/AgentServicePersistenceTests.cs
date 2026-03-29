@@ -16,7 +16,11 @@ public class AgentServicePersistenceTests
         var persistenceService = Substitute.For<IPersistenceService>();
         var logger = Substitute.For<ILogger<AgentService>>();
 
-        var sut = new AgentService(llmClient, calendarService, travelService, persistenceService, logger);
+        var env = Substitute.For<Microsoft.AspNetCore.Hosting.IWebHostEnvironment>();
+        env.ContentRootPath.Returns(Path.GetTempPath());
+        var weather = new WeatherService(Substitute.For<IHttpClientFactory>(), Substitute.For<ILogger<WeatherService>>());
+        var poi = new PoiService(Substitute.For<IHttpClientFactory>(), Substitute.For<ILogger<PoiService>>());
+        var sut = new AgentService(llmClient, calendarService, travelService, persistenceService, weather, poi, env, logger);
 
         llmClient.ChatAsync(Arg.Any<List<LlmMessage>>(), Arg.Any<List<LlmTool>?>())
             .Returns(

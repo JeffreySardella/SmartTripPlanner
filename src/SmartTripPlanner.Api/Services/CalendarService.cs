@@ -17,6 +17,62 @@ public class CalendarService : ICalendarService
         _logger = logger;
     }
 
+    public string TargetCalendarId { get; set; } = "primary";
+    public bool IsConfigured => _calendarApi is not null;
+
+    public async Task<List<CalendarInfo>> ListCalendarsAsync()
+    {
+        if (_calendarApi is null) return [];
+
+        var list = await _calendarApi.CalendarList.List().ExecuteAsync();
+        return (list.Items ?? []).Select(c => new CalendarInfo
+        {
+            Id = c.Id,
+            Name = c.Summary ?? c.Id,
+            IsPrimary = c.Primary ?? false
+        }).ToList();
+    }
+
+    public async Task<CalendarInfo> CreateCalendarAsync(string name)
+    {
+        if (_calendarApi is null) throw new InvalidOperationException("Google Calendar API not configured");
+
+        var calendar = new Calendar { Summary = name };
+        var created = await _calendarApi.Calendars.Insert(calendar).ExecuteAsync();
+
+        _logger?.LogInformation("Created calendar {CalendarId}: {Name}", created.Id, name);
+        return new CalendarInfo { Id = created.Id, Name = name };
+    }
+
+    public async Task DeleteCalendarAsync(string calendarId)
+    {
+        if (_calendarApi is null) throw new InvalidOperationException("Google Calendar API not configured");
+        if (calendarId == "primary") throw new InvalidOperationException("Cannot delete primary calendar");
+
+        await _calendarApi.Calendars.Delete(calendarId).ExecuteAsync();
+        _logger?.LogInformation("Deleted calendar {CalendarId}", calendarId);
+    }
+
+    public async Task<CalendarUserProfile?> GetUserProfileAsync()
+    {
+        if (_calendarApi is null) return null;
+
+        try
+        {
+            var calendarList = await _calendarApi.CalendarList.Get("primary").ExecuteAsync();
+            return new CalendarUserProfile
+            {
+                Name = calendarList.Summary ?? "",
+                Email = calendarList.Id ?? ""
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to get user profile");
+            return null;
+        }
+    }
+
     public async Task<List<FreeBusyBlock>> GetCalendarViewAsync(DateTime start, DateTime end)
     {
         var events = await FetchEventsAsync(start, end);
@@ -61,10 +117,11 @@ public class CalendarService : ICalendarService
             End = new EventDateTime { DateTimeDateTimeOffset = new DateTimeOffset(end) }
         };
 
-        var request = _calendarApi.Events.Insert(calendarEvent, "primary");
+        var request = _calendarApi.Events.Insert(calendarEvent, TargetCalendarId);
         var created = await request.ExecuteAsync();
 
-        _logger?.LogInformation("Created calendar event {EventId}: {Summary}", created.Id, summary);
+        _logger?.LogInformation("Created event {EventId} on calendar {CalendarId}: {Summary}",
+            created.Id, TargetCalendarId, summary);
         return created.Id;
     }
 
@@ -81,9 +138,13 @@ public class CalendarService : ICalendarService
 
     protected virtual async Task<IList<Event>> FetchEventsAsync(DateTime start, DateTime end)
     {
-        if (_calendarApi is null) throw new InvalidOperationException("Google Calendar API not configured");
+        if (_calendarApi is null)
+        {
+            _logger?.LogWarning("Calendar not configured — returning empty events");
+            return new List<Event>();
+        }
 
-        var request = _calendarApi.Events.List("primary");
+        var request = _calendarApi.Events.List(TargetCalendarId);
         request.TimeMinDateTimeOffset = new DateTimeOffset(start);
         request.TimeMaxDateTimeOffset = new DateTimeOffset(end);
         request.SingleEvents = true;

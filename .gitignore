@@ -12,7 +12,7 @@ appsettings.Development.json
 .tokens/
 
 ## Database
-AetherPlan.db
+SmartTripPlanner.db
 
 ## IDE
 *.suo

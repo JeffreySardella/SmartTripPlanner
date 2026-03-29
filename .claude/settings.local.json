@@ -5,7 +5,11 @@
       "Bash(dotnet:*)",
       "Bash(ls:*)",
       "Bash(cd C:\\\\Users\\\\Jeff\\\\Documents\\\\Github_new\\\\SmartTripPlanner:*)",
-      "Bash(cd /c/Users/Jeff/Documents/Github_new/SmartTripPlanner/.worktrees/google-calendar-oauth && git push -u origin feature/google-calendar-oauth 2>&1)"
+      "Bash(cd /c/Users/Jeff/Documents/Github_new/SmartTripPlanner/.worktrees/google-calendar-oauth && git push -u origin feature/google-calendar-oauth 2>&1)",
+      "Bash(tree -I 'bin|obj|.worktrees' -L 4 2>/dev/null || find . -not -path '*/bin/*' -not -path '*/obj/*' -not -path '*/.worktrees/*' -not -path '*/.git/*' -not -path '*/.claude/*' -type d | head -50 | sort)",
+      "Bash(find src/AetherPlan.Api src/AetherPlan.Tests -name '*.cs' -exec sed -i 's/AetherPlan/SmartTripPlanner/g' {} +)",
+      "Bash(find docs:*)",
+      "Bash(git mv:*)"
     ]
   }
 }

@@ -1,5 +1,7 @@
 namespace SmartTripPlanner.Api.Models;
 
+using System.Text.Json.Serialization;
+
 public class TripEvent
 {
     public int Id { get; set; }
@@ -11,5 +13,6 @@ public class TripEvent
     public DateTime Start { get; set; }
     public DateTime End { get; set; }
     public string? CalendarEventId { get; set; }
+    [JsonIgnore]
     public Trip? Trip { get; set; }
 }

@@ -1,56 +1,159 @@
 @page "/trips"
 @inject IPersistenceService PersistenceService
 
-<PageTitle>SmartTripPlanner - Trips</PageTitle>
+<PageTitle>SmartTripPlanner | My Trips</PageTitle>
 
-<h2>Trip History</h2>
+<div class="min-h-screen bg-surface-container-low overflow-y-auto">
+    <section class="pt-8 px-10 pb-20">
+        <div class="mb-12">
+            <div class="flex justify-between items-end mb-4">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-[0.2em] text-primary">Your Journey</span>
+                    <h2 class="text-5xl font-black tracking-tighter mt-2 italic">My Trips</h2>
+                </div>
+                <div class="text-right">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-outline">Total Trips</span>
+                    <p class="text-xl font-bold text-tertiary">@(_trips?.Count ?? 0)</p>
+                </div>
+            </div>
+            <div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+                <div class="h-full trip-pulse-gradient shadow-[0_0_15px_rgba(163,166,255,0.4)]"
+                     style="width: @(_trips?.Count > 0 ? "72" : "0")%"></div>
+            </div>
+        </div>
 
-@if (_trips is null)
-{
-    <p>Loading...</p>
-}
-else if (_trips.Count == 0)
-{
-    <p class="empty">No trips yet. Go to the chat page and plan one!</p>
-}
-else
-{
-    <div class="trip-list">
-        @foreach (var trip in _trips)
+        @if (_trips is null)
         {
-            <div class="trip-card @(_selectedTrip?.Id == trip.Id ? "selected" : "")"
-                 @onclick="() => SelectTrip(trip.Id)">
-                <h3>@trip.Destination</h3>
-                <span class="dates">@trip.StartDate.ToString("MMM d") - @trip.EndDate.ToString("MMM d, yyyy")</span>
-                <span class="status">@trip.Status</span>
+            <div class="flex items-center justify-center py-20">
+                <div class="w-2 h-2 bg-primary-dim rounded-full animate-bounce mr-2"></div>
+                <div class="w-2 h-2 bg-primary-dim rounded-full animate-bounce [animation-delay:0.15s] mr-2"></div>
+                <div class="w-2 h-2 bg-primary-dim rounded-full animate-bounce [animation-delay:0.3s]"></div>
             </div>
         }
-    </div>
-}
-
-@if (_selectedTrip is not null)
-{
-    <div class="trip-detail">
-        <h3>@_selectedTrip.Destination</h3>
-        @if (_selectedTrip.Events.Count == 0)
+        else if (_trips.Count == 0)
         {
-            <p>No events in this trip.</p>
+            <div class="flex flex-col items-center justify-center py-20 text-center space-y-4">
+                <span class="material-symbols-outlined text-6xl text-outline">flight_takeoff</span>
+                <p class="text-on-surface-variant text-lg">No trips planned yet</p>
+                <a href="/" class="text-primary font-bold hover:underline">Plan your first adventure</a>
+            </div>
         }
         else
         {
-            <div class="events">
-                @foreach (var evt in _selectedTrip.Events.OrderBy(e => e.Start))
+            <div class="grid grid-cols-12 gap-8 items-start">
+                <div class="col-span-7 space-y-6">
+                    @foreach (var trip in _trips)
+                    {
+                        var borderColor = trip.Status switch
+                        {
+                            "planned" => "border-tertiary",
+                            "active" => "border-secondary",
+                            _ => "border-primary"
+                        };
+                        var badgeBg = trip.Status switch
+                        {
+                            "planned" => "bg-tertiary/10 text-tertiary",
+                            "active" => "bg-secondary/10 text-secondary",
+                            _ => "bg-primary/10 text-primary"
+                        };
+                        var hoverColor = trip.Status switch
+                        {
+                            "planned" => "group-hover:text-tertiary",
+                            "active" => "group-hover:text-secondary",
+                            _ => "group-hover:text-primary"
+                        };
+
+                        <div @onclick="() => SelectTrip(trip.Id)"
+                             class="group bg-[#0f1117] rounded-xl overflow-hidden border-l-4 @borderColor shadow-lg hover:shadow-primary/5 transition-all duration-300 cursor-pointer @(_selectedTrip?.Id == trip.Id ? "ring-1 ring-primary/30" : "")">
+                            <div class="p-6 flex justify-between items-start">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-3 mb-2">
+                                        <span class="px-3 py-1 @badgeBg text-[10px] font-bold tracking-widest uppercase rounded-full">@trip.Status</span>
+                                        <span class="text-outline text-xs tracking-tight">@trip.StartDate.ToString("MMM d") — @trip.EndDate.ToString("MMM d, yyyy")</span>
+                                    </div>
+                                    <h3 class="text-2xl font-black tracking-tight @hoverColor transition-colors">@ExtractCity(trip.Destination)</h3>
+                                    <div class="flex items-center gap-4 mt-4 text-sm text-on-surface-variant">
+                                        <div class="flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-xs">event_note</span>
+                                            <span>@trip.Events.Count Events</span>
+                                        </div>
+                                        <div class="flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-xs">location_on</span>
+                                            <span>@trip.Destination.Split(',').FirstOrDefault()</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center hover:bg-primary hover:text-on-primary transition-all">
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                @if (_selectedTrip is not null)
                 {
-                    <div class="event-card">
-                        <strong>@evt.Summary</strong>
-                        <span>@evt.Location</span>
-                        <span class="time">@evt.Start.ToString("h:mm tt") - @evt.End.ToString("h:mm tt")</span>
+                    <div class="col-span-5 bg-surface-container-high rounded-xl p-8 border border-outline-variant/10 shadow-2xl">
+                        <div class="flex items-center justify-between mb-8">
+                            <div>
+                                <h4 class="text-xl font-extrabold tracking-tight">@ExtractCity(_selectedTrip.Destination)</h4>
+                                <p class="text-[10px] text-outline tracking-widest uppercase">@_selectedTrip.StartDate.ToString("MMM d, yyyy")</p>
+                            </div>
+                            <button @onclick="() => _selectedTrip = null" class="text-outline hover:text-on-surface transition-colors">
+                                <span class="material-symbols-outlined">close</span>
+                            </button>
+                        </div>
+
+                        @if (_selectedTrip.Events.Count == 0)
+                        {
+                            <p class="text-on-surface-variant text-sm italic">No events scheduled yet.</p>
+                        }
+                        else
+                        {
+                            <div class="space-y-10 relative">
+                                <div class="absolute left-[11px] top-6 bottom-6 w-[2px] bg-outline-variant/30"></div>
+
+                                @{ var dayNum = 0; }
+                                @foreach (var dayGroup in _selectedTrip.Events.OrderBy(e => e.Start).GroupBy(e => e.Start.Date))
+                                {
+                                    dayNum++;
+                                    var dayColor = (dayNum % 3) switch
+                                    {
+                                        1 => ("bg-secondary", "text-secondary", "border-secondary"),
+                                        2 => ("bg-primary", "text-primary", "border-primary"),
+                                        _ => ("bg-tertiary-dim", "text-tertiary", "border-tertiary")
+                                    };
+
+                                    <div class="relative z-10">
+                                        <div class="flex items-center gap-4 mb-6">
+                                            <div class="w-6 h-6 rounded-full @dayColor.Item1 flex items-center justify-center text-[10px] font-bold text-white">@dayNum.ToString("D2")</div>
+                                            <h5 class="text-sm font-black uppercase tracking-widest @dayColor.Item2">@dayGroup.Key.ToString("dddd, MMM d")</h5>
+                                        </div>
+                                        <div class="ml-10 space-y-8">
+                                            @foreach (var evt in dayGroup)
+                                            {
+                                                <div class="relative group">
+                                                    <div class="absolute -left-[35px] top-1.5 w-3.5 h-3.5 rounded-full border-2 @dayColor.Item3 bg-surface-container-high group-hover:@dayColor.Item1 transition-colors"></div>
+                                                    <p class="text-[10px] font-bold text-outline uppercase tracking-widest">@evt.Start.ToString("h:mm tt") — @evt.End.ToString("h:mm tt")</p>
+                                                    <h6 class="font-bold text-on-surface mt-1">@evt.Summary</h6>
+                                                    <p class="text-xs text-on-surface-variant">@evt.Location</p>
+                                                    @if (evt.CalendarEventId is not null)
+                                                    {
+                                                        <span class="inline-block mt-1 text-[8px] bg-tertiary/20 text-tertiary px-2 py-0.5 rounded font-bold uppercase">On Calendar</span>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
                     </div>
                 }
             </div>
         }
-    </div>
-}
+    </section>
+</div>
 
 @code {
     private List<Trip>? _trips;
@@ -64,5 +167,11 @@ else
     private async Task SelectTrip(int id)
     {
         _selectedTrip = await PersistenceService.GetTripByIdAsync(id);
+    }
+
+    private static string ExtractCity(string destination)
+    {
+        var parts = destination.Split(',');
+        return parts.Length > 1 ? parts[^1].Trim() : destination;
     }
 }

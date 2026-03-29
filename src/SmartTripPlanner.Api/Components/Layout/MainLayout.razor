@@ -1,15 +1,79 @@
 @inherits LayoutComponentBase
+@inject ICalendarService CalendarService
 
-<div class="app-container">
-    <header class="app-header">
-        <h1>SmartTripPlanner</h1>
-        <span>Local Smart Trip Planner</span>
-        <nav>
-            <a href="/">Chat</a>
-            <a href="/trips">Trips</a>
-        </nav>
-    </header>
-    <main>
+<div class="flex h-screen w-full">
+    <aside class="bg-[#0c0e14] h-full w-64 fixed left-0 top-0 shadow-[40px_0_60px_-15px_rgba(163,166,255,0.1)] z-50">
+        <div class="flex flex-col py-8 px-6 h-screen">
+            <div class="mb-12">
+                <h1 class="text-xl font-black tracking-tighter text-[#a3a6ff]">SmartTripPlanner</h1>
+                <p class="text-[10px] uppercase tracking-[0.2em] text-outline mt-1">Local AI Trip Planner</p>
+            </div>
+            <nav class="flex-1 flex flex-col gap-2">
+                <NavLink href="/" Match="NavLinkMatch.All" class="nav-link" ActiveClass="nav-active">
+                    <span class="material-symbols-outlined">explore</span>
+                    <span class="font-medium">Plan Trip</span>
+                </NavLink>
+                <NavLink href="/trips" Match="NavLinkMatch.Prefix" class="nav-link" ActiveClass="nav-active">
+                    <span class="material-symbols-outlined">luggage</span>
+                    <span class="font-medium">My Trips</span>
+                </NavLink>
+                <NavLink href="/settings" Match="NavLinkMatch.Prefix" class="nav-link" ActiveClass="nav-active">
+                    <span class="material-symbols-outlined">settings</span>
+                    <span class="font-medium">Settings</span>
+                </NavLink>
+            </nav>
+            <div class="mt-auto pt-6 border-t border-outline-variant/10">
+                <a href="/" class="w-full bg-gradient-to-r from-primary to-primary-dim text-on-primary py-3 rounded-full font-bold text-sm tracking-tight hover:brightness-110 active:scale-95 transition-all mb-6 flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-sm">add</span>
+                    New Trip
+                </a>
+                <div class="flex items-center gap-3 px-2 mt-6">
+                    @if (_profile is not null)
+                    {
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-sm">
+                            @GetInitials(_profile.Name)
+                        </div>
+                        <div class="overflow-hidden">
+                            <p class="text-sm font-bold truncate leading-tight">@_profile.Name</p>
+                            <p class="text-[10px] text-on-surface-variant truncate">@_profile.Email</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center">
+                            <span class="material-symbols-outlined text-outline text-lg">person</span>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold leading-tight">Local Mode</p>
+                            <p class="text-[10px] text-on-surface-variant">No calendar linked</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 ml-64 bg-surface flex flex-col relative overflow-hidden">
         @Body
     </main>
 </div>
+
+@code {
+    private CalendarUserProfile? _profile;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (CalendarService.IsConfigured)
+        {
+            _profile = await CalendarService.GetUserProfileAsync();
+        }
+    }
+
+    private static string GetInitials(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "?";
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2) return $"{parts[0][0]}{parts[1][0]}".ToUpper();
+        return name[..Math.Min(2, name.Length)].ToUpper();
+    }
+}
