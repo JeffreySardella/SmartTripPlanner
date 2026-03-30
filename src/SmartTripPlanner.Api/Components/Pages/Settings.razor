@@ -377,12 +377,17 @@
             }
 
             <div class="flex gap-2">
-                <input @bind="_newPrefKey" @bind:event="oninput"
-                       class="flex-1 bg-surface-container-low border border-outline-variant/10 rounded-lg px-3 py-2 text-sm text-on-surface focus:ring-0 focus:border-primary placeholder:text-outline"
-                       placeholder="Preference (e.g. dietary)" />
+                <select @bind="_newPrefKey"
+                        class="bg-surface-container-low border border-outline-variant/10 rounded-lg px-3 py-2 text-sm text-on-surface focus:ring-0 focus:border-primary">
+                    <option value="">Select category...</option>
+                    @foreach (var cat in PreferenceCategories)
+                    {
+                        <option value="@cat.Key">@cat.Label</option>
+                    }
+                </select>
                 <input @bind="_newPrefValue" @bind:event="oninput"
                        class="flex-1 bg-surface-container-low border border-outline-variant/10 rounded-lg px-3 py-2 text-sm text-on-surface focus:ring-0 focus:border-primary placeholder:text-outline"
-                       placeholder="Value (e.g. vegetarian)" />
+                       placeholder="@GetPlaceholder(_newPrefKey)" />
                 <button @onclick="AddPreference"
                         disabled="@(string.IsNullOrWhiteSpace(_newPrefKey) || string.IsNullOrWhiteSpace(_newPrefValue))"
                         class="px-6 py-2 bg-primary text-on-primary rounded-lg font-bold text-xs uppercase tracking-widest hover:brightness-110 transition-all disabled:opacity-30">
@@ -503,6 +508,25 @@
 
     private static string FormatBytes(long b) => b >= 1_000_000_000 ? $"{b / 1e9:F1} GB" : $"{b / 1e6:F0} MB";
     private static string FormatMb(int mb) => mb >= 1024 ? $"{mb / 1024.0:F1} GB" : $"{mb} MB";
+
+    private static readonly (string Key, string Label, string Placeholder)[] PreferenceCategories =
+    [
+        ("pace", "Pace", "e.g. relaxed, moderate, packed"),
+        ("dietary", "Dietary", "e.g. vegetarian, halal, gluten-free"),
+        ("interests", "Interests", "e.g. food, culture, nightlife, outdoors"),
+        ("morning_start", "Morning Preference", "e.g. early (before 8am), normal, late (after 10am)"),
+        ("budget", "Budget", "e.g. budget, mid-range, luxury"),
+        ("accessibility", "Accessibility", "e.g. wheelchair accessible, limited walking"),
+        ("hotel_area", "Hotel Area Preference", "e.g. city center, near transit, quiet neighborhood"),
+        ("avoid", "Things to Avoid", "e.g. tourist traps, crowded areas, malls"),
+    ];
+
+    private static string GetPlaceholder(string key)
+    {
+        if (string.IsNullOrEmpty(key)) return "Select a category first...";
+        var cat = PreferenceCategories.FirstOrDefault(c => c.Key == key);
+        return cat.Placeholder ?? "Enter your preference...";
+    }
 
     private async Task AddPreference()
     {

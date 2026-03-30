@@ -80,6 +80,7 @@ else
 }
 
 builder.Services.AddSingleton<OllamaManagementService>();
+builder.Services.AddSingleton<ChatStateService>();
 builder.Services.AddScoped<WeatherService>();
 builder.Services.AddScoped<PoiService>();
 builder.Services.AddScoped<IAgentService, AgentService>();

@@ -1,5 +1,7 @@
 @inherits LayoutComponentBase
 @inject ICalendarService CalendarService
+@inject ChatStateService ChatState
+@inject NavigationManager Nav
 
 <div class="flex h-screen w-full">
     <aside class="bg-[#0c0e14] h-full w-64 fixed left-0 top-0 shadow-[40px_0_60px_-15px_rgba(163,166,255,0.1)] z-50">
@@ -23,10 +25,10 @@
                 </NavLink>
             </nav>
             <div class="mt-auto pt-6 border-t border-outline-variant/10">
-                <a href="/" class="w-full bg-gradient-to-r from-primary to-primary-dim text-on-primary py-3 rounded-full font-bold text-sm tracking-tight hover:brightness-110 active:scale-95 transition-all mb-6 flex items-center justify-center gap-2">
+                <button @onclick="StartNewTrip" class="w-full bg-gradient-to-r from-primary to-primary-dim text-on-primary py-3 rounded-full font-bold text-sm tracking-tight hover:brightness-110 active:scale-95 transition-all mb-6 flex items-center justify-center gap-2">
                     <span class="material-symbols-outlined text-sm">add</span>
                     New Trip
-                </a>
+                </button>
                 <div class="flex items-center gap-3 px-2 mt-6">
                     @if (_profile is not null)
                     {
@@ -67,6 +69,12 @@
         {
             _profile = await CalendarService.GetUserProfileAsync();
         }
+    }
+
+    private void StartNewTrip()
+    {
+        ChatState.Clear();
+        Nav.NavigateTo("/", forceLoad: false);
     }
 
     private static string GetInitials(string name)

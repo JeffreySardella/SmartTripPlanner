@@ -1,11 +1,13 @@
 @page "/"
 @inject IAgentService AgentService
+@inject ChatStateService ChatState
 @inject IJSRuntime JS
+@implements IDisposable
 
 <PageTitle>SmartTripPlanner | Plan Trip</PageTitle>
 
 <div class="flex-1 mt-4 mb-28 px-10 overflow-y-auto space-y-8 flex flex-col max-w-5xl mx-auto w-full">
-    @if (_messages.Count == 0)
+    @if (ChatState.Messages.Count == 0)
     {
         <div class="flex flex-col items-center justify-center min-h-[600px] text-center space-y-8">
             <div class="relative">
@@ -183,7 +185,7 @@
     }
     else
     {
-        @foreach (var msg in _messages)
+        @foreach (var msg in ChatState.Messages)
         {
             @if (msg.Role == "user")
             {
@@ -366,6 +368,13 @@
                class="flex-1 bg-transparent border-none focus:ring-0 text-on-surface placeholder:text-outline/60 text-sm py-3"
                placeholder="Type your travel dreams here..." autocomplete="off" />
         <div class="flex items-center gap-2 pr-2">
+            @if (ChatState.Messages.Count > 0 && !_isLoading)
+            {
+                <button type="button" @onclick="NewChat" title="New Chat"
+                        class="text-on-surface-variant w-11 h-11 flex items-center justify-center rounded-lg hover:bg-surface-container-highest transition-all">
+                    <span class="material-symbols-outlined">add_comment</span>
+                </button>
+            }
             <button type="submit" disabled="@(_isLoading || string.IsNullOrWhiteSpace(_input))"
                     class="bg-gradient-to-br from-primary to-primary-dim text-on-primary w-11 h-11 flex items-center justify-center rounded-lg hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20 disabled:opacity-30 disabled:hover:scale-100">
                 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">send</span>
@@ -382,7 +391,6 @@
 </div>
 
 @code {
-    private readonly List<ChatMessage> _messages = [];
     private string _input = string.Empty;
     private bool _isLoading;
     private double _elapsedSec;
@@ -413,6 +421,12 @@
         "Local Culture", "Live Music", "Wellness & Spa", "Markets & Street Food"
     ];
 
+    protected override void OnInitialized()
+    {
+        _isLoading = ChatState.IsLoading;
+        _pendingConfirmation = ChatState.PendingConfirmation;
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -433,10 +447,13 @@
 
         var userMessage = _input.Trim();
         _input = string.Empty;
-        _messages.Add(new ChatMessage("user", userMessage));
+        ChatState.Messages.Add(new ChatMessage("user", userMessage));
         _isLoading = true;
+        ChatState.IsLoading = true;
         _elapsedSec = 0;
         StateHasChanged();
+
+        await JS.InvokeVoidAsync("eval", "window.__smartTripLoading = true; window.onbeforeunload = function() { return 'Trip planning in progress'; };");
 
         // Tick the timer every second
         var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -448,31 +465,37 @@
 
         try
         {
-            var result = await AgentService.RunAsync(userMessage);
+            // Pass prior messages as history so the LLM has conversation context
+            var priorMessages = ChatState.Messages.SkipLast(1).ToList();
+            var result = await AgentService.RunAsync(userMessage, priorMessages, _ => { });
 
             if (result.Type == AgentResultType.TripConfirmation && result.Confirmation is not null)
             {
                 _pendingConfirmation = result.Confirmation;
+                ChatState.PendingConfirmation = result.Confirmation;
                 _editingConfirmation = false;
             }
             else
             {
-                _messages.Add(new ChatMessage("assistant", result.TextContent ?? ""));
+                ChatState.Messages.Add(new ChatMessage("assistant", result.TextContent ?? ""));
             }
 
             await JS.InvokeVoidAsync("eval",
-                "if ('Notification' in window && Notification.permission === 'granted' && document.hidden) " +
-                "new Notification('SmartTripPlanner', { body: 'Your trip itinerary is ready!' })");
+                "window.__smartTripLoading = false; window.onbeforeunload = null; " +
+                "if ('Notification' in window && Notification.permission === 'granted') " +
+                "new Notification('SmartTripPlanner', { body: 'Your trip itinerary is ready!', icon: '/favicon.ico' })");
         }
         catch (Exception ex)
         {
-            _messages.Add(new ChatMessage("assistant", $"Something went wrong: {ex.Message}"));
+            ChatState.Messages.Add(new ChatMessage("assistant", $"Something went wrong: {ex.Message}"));
         }
         finally
         {
             _timer?.Dispose();
             _timer = null;
             _isLoading = false;
+            ChatState.IsLoading = false;
+            await JS.InvokeVoidAsync("eval", "window.__smartTripLoading = false; window.onbeforeunload = null;");
         }
     }
 
@@ -630,5 +653,17 @@
         return text;
     }
 
-    private record ChatMessage(string Role, string Content);
+    private void NewChat()
+    {
+        ChatState.Clear();
+        _pendingConfirmation = null;
+        _showGuidedForm = false;
+        _input = string.Empty;
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
+    }
 }

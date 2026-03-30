@@ -74,9 +74,12 @@ public class AgentService(
     }
 
     public Task<AgentResult> RunAsync(string userRequest, int maxIterations = 10)
-        => RunAsync(userRequest, _ => { }, maxIterations);
+        => RunAsync(userRequest, null, _ => { }, maxIterations);
 
-    public async Task<AgentResult> RunAsync(string userRequest, Action<AgentProgress> onProgress, int maxIterations = 10)
+    public Task<AgentResult> RunAsync(string userRequest, Action<AgentProgress> onProgress, int maxIterations = 10)
+        => RunAsync(userRequest, null, onProgress, maxIterations);
+
+    public async Task<AgentResult> RunAsync(string userRequest, IReadOnlyList<ChatMessage>? history, Action<AgentProgress> onProgress, int maxIterations = 10)
     {
         var sw = System.Diagnostics.Stopwatch.StartNew();
 
@@ -91,9 +94,25 @@ public class AgentService(
 
         var messages = new List<LlmMessage>
         {
-            new() { Role = "system", Content = promptWithPrefs },
-            new() { Role = "user", Content = userRequest }
+            new() { Role = "system", Content = promptWithPrefs }
         };
+
+        // Include conversation history so the LLM has context from prior exchanges
+        if (history is { Count: > 0 })
+        {
+            foreach (var msg in history)
+            {
+                // Skip the current message (it's added below) and skip empty messages
+                if (string.IsNullOrWhiteSpace(msg.Content)) continue;
+                messages.Add(new LlmMessage
+                {
+                    Role = msg.Role == "user" ? "user" : "assistant",
+                    Content = msg.Content
+                });
+            }
+        }
+
+        messages.Add(new LlmMessage { Role = "user", Content = userRequest });
 
         var tools = ToolDefinitions.GetAllTools();
         int? currentRunTripId = null;
@@ -147,26 +166,40 @@ public class AgentService(
                         ElapsedSec = sw.Elapsed.TotalSeconds
                     });
 
-                    var ctArgs = toolCall.Function.Arguments;
-                    var confirmation = new TripConfirmation
+                    try
                     {
-                        Destination = ctArgs["destination"].ToString()!,
-                        Dates = ctArgs.GetStringOrDefault("dates"),
-                        Pace = ctArgs.GetStringOrDefault("pace"),
-                        Travelers = ctArgs.GetIntOrDefault("travelers", 1),
-                        Budget = ctArgs.GetStringOrDefault("budget"),
-                        Dietary = ctArgs.GetStringOrDefault("dietary"),
-                        Accessibility = ctArgs.GetStringOrDefault("accessibility"),
-                    };
+                        var ctArgs = toolCall.Function.Arguments;
+                        var confirmation = new TripConfirmation
+                        {
+                            Destination = ctArgs.GetStringOrDefault("destination") ?? "Unknown",
+                            Dates = ctArgs.GetStringOrDefault("dates"),
+                            Pace = ctArgs.GetStringOrDefault("pace"),
+                            Travelers = ctArgs.GetIntOrDefault("travelers", 1),
+                            Budget = ctArgs.GetStringOrDefault("budget"),
+                            Dietary = ctArgs.GetStringOrDefault("dietary"),
+                            Accessibility = ctArgs.GetStringOrDefault("accessibility"),
+                        };
 
-                    if (ctArgs.TryGetValue("interests", out var interestsVal) && interestsVal is JsonElement je && je.ValueKind == JsonValueKind.Array)
-                        confirmation.Interests = je.EnumerateArray().Select(e => e.GetString()!).ToList();
-                    if (ctArgs.TryGetValue("must_see", out var mustSeeVal) && mustSeeVal is JsonElement ms && ms.ValueKind == JsonValueKind.Array)
-                        confirmation.MustSee = ms.EnumerateArray().Select(e => e.GetString()!).ToList();
-                    if (ctArgs.TryGetValue("avoid", out var avoidVal) && avoidVal is JsonElement av && av.ValueKind == JsonValueKind.Array)
-                        confirmation.Avoid = av.EnumerateArray().Select(e => e.GetString()!).ToList();
+                        if (ctArgs.TryGetValue("interests", out var interestsVal) && interestsVal is JsonElement je && je.ValueKind == JsonValueKind.Array)
+                            confirmation.Interests = je.EnumerateArray().Select(e => e.GetString()!).ToList();
+                        if (ctArgs.TryGetValue("must_see", out var mustSeeVal) && mustSeeVal is JsonElement ms && ms.ValueKind == JsonValueKind.Array)
+                            confirmation.MustSee = ms.EnumerateArray().Select(e => e.GetString()!).ToList();
+                        if (ctArgs.TryGetValue("avoid", out var avoidVal) && avoidVal is JsonElement av && av.ValueKind == JsonValueKind.Array)
+                            confirmation.Avoid = av.EnumerateArray().Select(e => e.GetString()!).ToList();
 
-                    return AgentResult.Confirm(confirmation);
+                        return AgentResult.Confirm(confirmation);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogWarning(ex, "Failed to parse confirm_trip arguments, feeding error back to LLM");
+                        messages.Add(new LlmMessage
+                        {
+                            Role = "tool",
+                            Content = JsonSerializer.Serialize(new { error = $"confirm_trip failed: {ex.Message}" }),
+                            ToolCallId = toolCall.Id
+                        });
+                        continue;
+                    }
                 }
 
                 var friendlyName = toolCall.Function.Name switch

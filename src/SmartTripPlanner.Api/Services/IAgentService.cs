@@ -6,6 +6,7 @@ public interface IAgentService
 {
     Task<AgentResult> RunAsync(string userRequest, int maxIterations = 10);
     Task<AgentResult> RunAsync(string userRequest, Action<AgentProgress> onProgress, int maxIterations = 10);
+    Task<AgentResult> RunAsync(string userRequest, IReadOnlyList<ChatMessage>? history, Action<AgentProgress> onProgress, int maxIterations = 10);
 }
 
 public class AgentProgress
