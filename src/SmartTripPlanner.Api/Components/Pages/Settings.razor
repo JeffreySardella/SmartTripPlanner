@@ -2,6 +2,7 @@
 @inject ICalendarService CalendarService
 @inject OllamaManagementService OllamaManager
 @inject IConfiguration Config
+@inject IPersistenceService PersistenceService
 
 <PageTitle>SmartTripPlanner | Settings</PageTitle>
 
@@ -311,6 +312,84 @@
                 }
             </div>
         </section>
+
+        @* ── My Preferences ── *@
+        <section class="col-span-12 bg-surface-container rounded-xl p-8 border border-outline-variant/5">
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center">
+                        <span class="material-symbols-outlined text-primary">tune</span>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold tracking-tight">My Preferences</h3>
+                        <p class="text-xs text-on-surface-variant">Your travel preferences — learned from usage or set by you</p>
+                    </div>
+                </div>
+            </div>
+
+            @if (_preferences.Count > 0)
+            {
+                <div class="space-y-3 mb-8">
+                    @foreach (var pref in _preferences)
+                    {
+                        <div class="flex items-center justify-between p-4 bg-surface-container-low rounded-lg border border-outline-variant/5">
+                            <div class="flex items-center gap-4">
+                                <div>
+                                    <p class="text-sm font-bold tracking-tight capitalize">@pref.Key.Replace("_", " ")</p>
+                                    @if (_editingPrefId == pref.Id)
+                                    {
+                                        <input @bind="_editPrefValue" @bind:event="oninput"
+                                               class="mt-1 bg-surface-container border border-outline-variant/10 rounded px-2 py-1 text-sm text-on-surface focus:ring-0 focus:border-primary" />
+                                    }
+                                    else
+                                    {
+                                        <p class="text-sm text-on-surface-variant">@pref.Value</p>
+                                    }
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full
+                                       @(pref.Source == "user" ? "bg-primary/10 text-primary" : "bg-secondary/10 text-secondary")">
+                                    @(pref.Source == "user" ? "Set by you" : "Learned")
+                                </span>
+                                @if (_editingPrefId == pref.Id)
+                                {
+                                    <button @onclick="() => SaveEditedPreference(pref)"
+                                            class="material-symbols-outlined text-tertiary text-lg hover:scale-110 transition-transform">check</button>
+                                    <button @onclick="() => _editingPrefId = null"
+                                            class="material-symbols-outlined text-outline text-lg hover:scale-110 transition-transform">close</button>
+                                }
+                                else
+                                {
+                                    <button @onclick="() => { _editingPrefId = pref.Id; _editPrefValue = pref.Value; }"
+                                            class="material-symbols-outlined text-on-surface-variant text-lg hover:text-primary transition-colors">edit</button>
+                                    <button @onclick="() => DeletePreference(pref.Key)"
+                                            class="material-symbols-outlined text-on-surface-variant text-lg hover:text-error transition-colors">delete</button>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="text-sm text-on-surface-variant italic mb-8">No preferences saved yet. The AI will learn your patterns over time, or you can add them manually below.</p>
+            }
+
+            <div class="flex gap-2">
+                <input @bind="_newPrefKey" @bind:event="oninput"
+                       class="flex-1 bg-surface-container-low border border-outline-variant/10 rounded-lg px-3 py-2 text-sm text-on-surface focus:ring-0 focus:border-primary placeholder:text-outline"
+                       placeholder="Preference (e.g. dietary)" />
+                <input @bind="_newPrefValue" @bind:event="oninput"
+                       class="flex-1 bg-surface-container-low border border-outline-variant/10 rounded-lg px-3 py-2 text-sm text-on-surface focus:ring-0 focus:border-primary placeholder:text-outline"
+                       placeholder="Value (e.g. vegetarian)" />
+                <button @onclick="AddPreference"
+                        disabled="@(string.IsNullOrWhiteSpace(_newPrefKey) || string.IsNullOrWhiteSpace(_newPrefValue))"
+                        class="px-6 py-2 bg-primary text-on-primary rounded-lg font-bold text-xs uppercase tracking-widest hover:brightness-110 transition-all disabled:opacity-30">
+                    Add
+                </button>
+            </div>
+        </section>
     </div>
 </div>
 
@@ -333,6 +412,12 @@
     private string? _createSuccess;
     private string? _confirmDeleteId;
 
+    private List<UserPreference> _preferences = [];
+    private string _newPrefKey = "";
+    private string _newPrefValue = "";
+    private int? _editingPrefId;
+    private string _editPrefValue = "";
+
     protected override async Task OnInitializedAsync()
     {
         _activeModel = Config["Llm:Ollama:Model"] ?? "qwen3.5:35b-a3b";
@@ -348,6 +433,7 @@
         _selectedGpu = _allGpus.OrderByDescending(g => g.VramTotalMb).FirstOrDefault();
         _models = await modelsTask;
         if (calTask is not null) try { _calendars = await calTask; } catch { _calendars = []; }
+        _preferences = await PersistenceService.GetPreferencesAsync();
         if (_models is not null) _benchSelected = _models.Select(m => m.Name).ToHashSet();
     }
 
@@ -417,4 +503,26 @@
 
     private static string FormatBytes(long b) => b >= 1_000_000_000 ? $"{b / 1e9:F1} GB" : $"{b / 1e6:F0} MB";
     private static string FormatMb(int mb) => mb >= 1024 ? $"{mb / 1024.0:F1} GB" : $"{mb} MB";
+
+    private async Task AddPreference()
+    {
+        if (string.IsNullOrWhiteSpace(_newPrefKey) || string.IsNullOrWhiteSpace(_newPrefValue)) return;
+        await PersistenceService.SavePreferenceAsync(_newPrefKey.Trim().ToLowerInvariant().Replace(" ", "_"), _newPrefValue.Trim(), "user");
+        _preferences = await PersistenceService.GetPreferencesAsync();
+        _newPrefKey = ""; _newPrefValue = "";
+    }
+
+    private async Task DeletePreference(string key)
+    {
+        await PersistenceService.DeletePreferenceAsync(key);
+        _preferences = await PersistenceService.GetPreferencesAsync();
+    }
+
+    private async Task SaveEditedPreference(UserPreference pref)
+    {
+        if (string.IsNullOrWhiteSpace(_editPrefValue)) return;
+        await PersistenceService.SavePreferenceAsync(pref.Key, _editPrefValue.Trim(), "user");
+        _preferences = await PersistenceService.GetPreferencesAsync();
+        _editingPrefId = null;
+    }
 }
