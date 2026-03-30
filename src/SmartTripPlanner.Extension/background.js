@@ -54,10 +54,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.action === 'extractViaLlm') {
-    saveLocation(message.data)
-      .then(result => sendResponse({ success: true, data: result }))
-      .catch(err => sendResponse({ success: false, error: err.message }));
-    return true;
+    // Return the raw data for preview only — don't save yet.
+    // The user will click "Save to Ideas" to trigger the actual save.
+    sendResponse({ success: true, data: message.data });
+    return false;
   }
 
   if (message.action === 'saveAndAssign') {

@@ -32,7 +32,12 @@ async function init() {
       showNoLocation();
     }
   } catch (err) {
-    showError('Failed to scan page: ' + err.message);
+    if (err.message?.includes('Could not establish connection') ||
+        err.message?.includes('Receiving end does not exist')) {
+      showNoLocation();
+    } else {
+      showError('Failed to scan page: ' + err.message);
+    }
   }
 
   // Load trips for dropdown
