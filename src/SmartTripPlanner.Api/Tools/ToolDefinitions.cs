@@ -180,6 +180,82 @@ public static class ToolDefinitions
                     required = new[] { "latitude", "longitude" }
                 }
             }
+        },
+        new LlmTool
+        {
+            Function = new LlmFunction
+            {
+                Name = "confirm_trip",
+                Description = "Present a parsed trip request to the user for confirmation before planning begins. Only call this for freeform text requests, not structured [TRIP REQUEST] blocks. The user will see an editable card with these fields and must confirm before you proceed.",
+                Parameters = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        destination = new { type = "string", description = "Parsed destination city/region" },
+                        dates = new { type = "string", description = "Parsed date range (e.g. 'Apr 15-22, 2026') or null if ambiguous" },
+                        pace = new { type = "string", description = "relaxed, moderate, or packed — or null if not specified" },
+                        travelers = new { type = "integer", description = "Number of travelers (default 1)" },
+                        budget = new { type = "string", description = "Budget level or null" },
+                        interests = new { type = "array", items = new { type = "string" }, description = "List of interest categories" },
+                        dietary = new { type = "string", description = "Dietary restrictions or null" },
+                        accessibility = new { type = "string", description = "Accessibility needs or null" },
+                        must_see = new { type = "array", items = new { type = "string" }, description = "Must-see places" },
+                        avoid = new { type = "array", items = new { type = "string" }, description = "Things to avoid" }
+                    },
+                    required = new[] { "destination" }
+                }
+            }
+        },
+        new LlmTool
+        {
+            Function = new LlmFunction
+            {
+                Name = "save_preference",
+                Description = "Save or update a user preference for future trip planning. Uses upsert — if the key exists, updates value and source. Call with source 'learned' when you detect a pattern across 3+ trips. Call with source 'user' when the user explicitly states a preference.",
+                Parameters = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        key = new { type = "string", description = "Preference category (e.g. pace, dietary, interests, morning_start)" },
+                        value = new { type = "string", description = "Preference value" },
+                        source = new { type = "string", description = "'learned' (inferred from patterns) or 'user' (explicitly stated)" }
+                    },
+                    required = new[] { "key", "value", "source" }
+                }
+            }
+        },
+        new LlmTool
+        {
+            Function = new LlmFunction
+            {
+                Name = "delete_preference",
+                Description = "Remove a saved user preference by key. Use when the user asks to forget a preference.",
+                Parameters = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        key = new { type = "string", description = "Preference key to delete" }
+                    },
+                    required = new[] { "key" }
+                }
+            }
+        },
+        new LlmTool
+        {
+            Function = new LlmFunction
+            {
+                Name = "get_user_choice_history",
+                Description = "Retrieve aggregated history of the user's past trip choices to detect patterns. Returns counts per category (e.g. pace: packed x4, moderate x1). Call after completing a trip plan to check if any choices should be saved as learned preferences.",
+                Parameters = new
+                {
+                    type = "object",
+                    properties = new { },
+                    required = Array.Empty<string>()
+                }
+            }
         }
     ];
 }

@@ -5,10 +5,10 @@ using SmartTripPlanner.Api.Tools;
 public class ToolDefinitionsTests
 {
     [Fact]
-    public void GetAllTools_ReturnsNineTools()
+    public void GetAllTools_ReturnsThirteenTools()
     {
         var tools = ToolDefinitions.GetAllTools();
-        Assert.Equal(9, tools.Count);
+        Assert.Equal(13, tools.Count);
     }
 
     [Theory]
@@ -21,6 +21,10 @@ public class ToolDefinitionsTests
     [InlineData("get_trip")]
     [InlineData("search_restaurants")]
     [InlineData("search_hotels")]
+    [InlineData("confirm_trip")]
+    [InlineData("save_preference")]
+    [InlineData("delete_preference")]
+    [InlineData("get_user_choice_history")]
     public void GetAllTools_ContainsTool(string toolName)
     {
         var tools = ToolDefinitions.GetAllTools();
