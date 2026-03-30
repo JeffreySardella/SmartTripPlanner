@@ -107,4 +107,75 @@ public class PersistenceService(SmartTripPlannerDbContext db) : IPersistenceServ
         await db.SaveChangesAsync();
         return true;
     }
+
+    public async Task SavePreferenceAsync(string key, string value, string source)
+    {
+        var existing = await db.UserPreferences.FirstOrDefaultAsync(p => p.Key == key);
+        if (existing is not null)
+        {
+            existing.Value = value;
+            existing.Source = source;
+        }
+        else
+        {
+            db.UserPreferences.Add(new UserPreference { Key = key, Value = value, Source = source });
+        }
+        await db.SaveChangesAsync();
+    }
+
+    public async Task<List<UserPreference>> GetPreferencesAsync()
+    {
+        return await db.UserPreferences.OrderBy(p => p.Key).ToListAsync();
+    }
+
+    public async Task<bool> DeletePreferenceAsync(string key)
+    {
+        var pref = await db.UserPreferences.FirstOrDefaultAsync(p => p.Key == key);
+        if (pref is null) return false;
+        db.UserPreferences.Remove(pref);
+        await db.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<Dictionary<string, Dictionary<string, int>>> GetUserChoiceHistoryAsync()
+    {
+        var trips = await db.Trips
+            .Include(t => t.Events)
+            .Where(t => t.Events.Count > 0)
+            .ToListAsync();
+
+        var history = new Dictionary<string, Dictionary<string, int>>();
+
+        var paceCounts = new Dictionary<string, int>();
+        foreach (var trip in trips)
+        {
+            var days = (trip.EndDate - trip.StartDate).Days;
+            if (days <= 0) days = 1;
+            var eventsPerDay = (double)trip.Events.Count / days;
+            var pace = eventsPerDay switch
+            {
+                <= 3 => "relaxed",
+                <= 5 => "moderate",
+                _ => "packed"
+            };
+            paceCounts[pace] = paceCounts.GetValueOrDefault(pace) + 1;
+        }
+        history["pace"] = paceCounts;
+
+        var morningCounts = new Dictionary<string, int>();
+        foreach (var trip in trips)
+        {
+            var earliestHour = trip.Events.Min(e => e.Start.Hour);
+            var morning = earliestHour switch
+            {
+                <= 8 => "early",
+                <= 10 => "normal",
+                _ => "late"
+            };
+            morningCounts[morning] = morningCounts.GetValueOrDefault(morning) + 1;
+        }
+        history["morning_start"] = morningCounts;
+
+        return history;
+    }
 }

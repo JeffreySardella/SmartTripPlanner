@@ -13,4 +13,8 @@ public interface IPersistenceService
     Task CacheLocationsAsync(List<CachedLocation> locations);
     Task<CachedLocation?> GetCachedLocationByNameAsync(string name);
     Task<bool> DeleteTripEventAsync(int eventId);
+    Task SavePreferenceAsync(string key, string value, string source);
+    Task<List<UserPreference>> GetPreferencesAsync();
+    Task<bool> DeletePreferenceAsync(string key);
+    Task<Dictionary<string, Dictionary<string, int>>> GetUserChoiceHistoryAsync();
 }
