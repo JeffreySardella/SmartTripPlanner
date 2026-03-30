@@ -21,6 +21,10 @@ public class SmartTripPlannerDbContext(DbContextOptions<SmartTripPlannerDbContex
             .HasIndex(p => p.Key)
             .IsUnique();
 
+        modelBuilder.Entity<UserPreference>()
+            .Property(p => p.Source)
+            .HasDefaultValue("user");
+
         modelBuilder.Entity<CachedLocation>()
             .HasOne(cl => cl.Trip)
             .WithMany()
