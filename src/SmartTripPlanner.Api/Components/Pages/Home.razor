@@ -39,6 +39,146 @@
                     <span class="text-sm font-medium">2 days in Austin — BBQ & live music</span>
                 </button>
             </div>
+
+            @* Guided Planning toggle *@
+            <div class="mt-6">
+                <button @onclick="() => _showGuidedForm = !_showGuidedForm"
+                        class="flex items-center gap-2 mx-auto px-6 py-3 bg-surface-container-high rounded-full border border-primary/20 hover:bg-surface-container-highest transition-all text-sm font-medium text-primary">
+                    <span class="material-symbols-outlined text-lg">checklist</span>
+                    @(_showGuidedForm ? "Hide Guided Planning" : "Guided Planning")
+                </button>
+            </div>
+
+            @* Guided Planning form *@
+            @if (_showGuidedForm)
+            {
+                <div class="w-full max-w-2xl bg-surface-container rounded-xl p-8 border border-outline-variant/10 text-left space-y-6">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="material-symbols-outlined text-primary text-2xl">route</span>
+                        <h3 class="text-xl font-bold text-on-surface tracking-tight">Plan Your Trip</h3>
+                    </div>
+
+                    @* Destination *@
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Destination</label>
+                        <input @bind="_formDestination" placeholder="e.g. Tokyo, Japan"
+                               class="w-full bg-surface-container-low border border-outline-variant/10 rounded-lg px-3 py-2 text-sm text-on-surface focus:ring-0 focus:border-primary" />
+                    </div>
+
+                    @* Dates *@
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Start Date</label>
+                            <input type="date" @bind="_formStartDate"
+                                   class="w-full bg-surface-container-low border border-outline-variant/10 rounded-lg px-3 py-2 text-sm text-on-surface focus:ring-0 focus:border-primary" />
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">End Date</label>
+                            <input type="date" @bind="_formEndDate"
+                                   class="w-full bg-surface-container-low border border-outline-variant/10 rounded-lg px-3 py-2 text-sm text-on-surface focus:ring-0 focus:border-primary" />
+                        </div>
+                    </div>
+
+                    @* Pace *@
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Pace</label>
+                        <div class="flex gap-3">
+                            @foreach (var pace in new[] { "Relaxed", "Moderate", "Packed" })
+                            {
+                                <button @onclick="() => _formPace = pace"
+                                        class="@(pace == _formPace
+                                            ? "bg-secondary text-on-secondary rounded-full px-5 py-2 text-sm font-medium transition-all"
+                                            : "bg-surface-container-low text-on-surface-variant border border-outline-variant/10 rounded-full px-5 py-2 text-sm font-medium transition-all hover:bg-surface-container-high")">
+                                    @pace
+                                </button>
+                            }
+                        </div>
+                    </div>
+
+                    @* Travelers *@
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Travelers</label>
+                        <div class="flex items-center gap-4">
+                            <button @onclick="() => { if (_formTravelers > 1) _formTravelers--; }"
+                                    class="w-10 h-10 rounded-full border border-outline-variant/10 bg-surface-container-low text-on-surface-variant flex items-center justify-center hover:bg-surface-container-high transition-all">
+                                <span class="material-symbols-outlined text-lg">remove</span>
+                            </button>
+                            <span class="text-xl font-bold text-on-surface min-w-[2rem] text-center">@_formTravelers</span>
+                            <button @onclick="() => _formTravelers++"
+                                    class="w-10 h-10 rounded-full border border-outline-variant/10 bg-surface-container-low text-on-surface-variant flex items-center justify-center hover:bg-surface-container-high transition-all">
+                                <span class="material-symbols-outlined text-lg">add</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    @* Budget *@
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Budget</label>
+                        <select @bind="_formBudget"
+                                class="w-full bg-surface-container-low border border-outline-variant/10 rounded-lg px-3 py-2 text-sm text-on-surface focus:ring-0 focus:border-primary">
+                            <option value="">Select a budget...</option>
+                            <option value="Budget">Budget</option>
+                            <option value="Mid-range">Mid-range</option>
+                            <option value="Luxury">Luxury</option>
+                            <option value="No preference">No preference</option>
+                        </select>
+                    </div>
+
+                    @* Interests *@
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Interests</label>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach (var interest in AvailableInterests)
+                            {
+                                <button @onclick="() => ToggleInterest(interest)"
+                                        class="@(_formInterests.Contains(interest)
+                                            ? "bg-secondary text-on-secondary rounded-full px-4 py-1.5 text-xs font-medium transition-all"
+                                            : "bg-surface-container-low text-on-surface-variant border border-outline-variant/10 rounded-full px-4 py-1.5 text-xs font-medium transition-all hover:bg-surface-container-high")">
+                                    @interest
+                                </button>
+                            }
+                        </div>
+                    </div>
+
+                    @* Dietary *@
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Dietary Restrictions</label>
+                        <input @bind="_formDietary" placeholder="e.g. Vegetarian, gluten-free"
+                               class="w-full bg-surface-container-low border border-outline-variant/10 rounded-lg px-3 py-2 text-sm text-on-surface focus:ring-0 focus:border-primary" />
+                    </div>
+
+                    @* Accessibility *@
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Accessibility Needs</label>
+                        <input @bind="_formAccessibility" placeholder="e.g. Wheelchair accessible"
+                               class="w-full bg-surface-container-low border border-outline-variant/10 rounded-lg px-3 py-2 text-sm text-on-surface focus:ring-0 focus:border-primary" />
+                    </div>
+
+                    @* Must See *@
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Must-See Places</label>
+                        <input @bind="_formMustSee" placeholder="e.g. Eiffel Tower, Louvre Museum"
+                               class="w-full bg-surface-container-low border border-outline-variant/10 rounded-lg px-3 py-2 text-sm text-on-surface focus:ring-0 focus:border-primary" />
+                    </div>
+
+                    @* Avoid *@
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Places to Avoid</label>
+                        <input @bind="_formAvoid" placeholder="e.g. Tourist traps, chain restaurants"
+                               class="w-full bg-surface-container-low border border-outline-variant/10 rounded-lg px-3 py-2 text-sm text-on-surface focus:ring-0 focus:border-primary" />
+                    </div>
+
+                    @* Submit *@
+                    <button @onclick="SubmitGuidedForm"
+                            disabled="@(string.IsNullOrWhiteSpace(_formDestination) || _isLoading)"
+                            class="w-full bg-gradient-to-br from-primary to-primary-dim text-on-primary rounded-lg px-6 py-3 text-sm font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20 disabled:opacity-30 disabled:hover:scale-100">
+                        <span class="flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined text-lg">flight_takeoff</span>
+                            Plan This Trip
+                        </span>
+                    </button>
+                </div>
+            }
         </div>
     }
     else
@@ -85,6 +225,139 @@
             </div>
         </div>
     }
+
+    @* Confirmation card *@
+    @if (_pendingConfirmation is not null)
+    {
+        <div class="w-full max-w-2xl mx-auto bg-surface-container rounded-xl p-8 border border-outline-variant/10 space-y-6">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-secondary to-tertiary flex items-center justify-center">
+                    <span class="material-symbols-outlined text-white text-lg">fact_check</span>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-on-surface">Confirm Your Trip</h3>
+                    <p class="text-xs text-on-surface-variant">Review the details before we start planning</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                @* Destination *@
+                <div class="col-span-2 space-y-1">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Destination</span>
+                    <p class="text-sm font-medium text-on-surface">@_pendingConfirmation.Destination</p>
+                </div>
+
+                @* Dates *@
+                @if (!string.IsNullOrWhiteSpace(_pendingConfirmation.Dates))
+                {
+                    <div class="space-y-1">
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Dates</span>
+                        <p class="text-sm text-on-surface">@_pendingConfirmation.Dates</p>
+                    </div>
+                }
+
+                @* Pace *@
+                @if (!string.IsNullOrWhiteSpace(_pendingConfirmation.Pace))
+                {
+                    <div class="space-y-1">
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Pace</span>
+                        <p class="text-sm text-on-surface">@_pendingConfirmation.Pace</p>
+                    </div>
+                }
+
+                @* Travelers *@
+                <div class="space-y-1">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Travelers</span>
+                    <p class="text-sm text-on-surface">@_pendingConfirmation.Travelers</p>
+                </div>
+
+                @* Budget *@
+                @if (!string.IsNullOrWhiteSpace(_pendingConfirmation.Budget))
+                {
+                    <div class="space-y-1">
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Budget</span>
+                        <p class="text-sm text-on-surface">@_pendingConfirmation.Budget</p>
+                    </div>
+                }
+
+                @* Interests *@
+                @if (_pendingConfirmation.Interests.Count > 0)
+                {
+                    <div class="col-span-2 space-y-2">
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Interests</span>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach (var interest in _pendingConfirmation.Interests)
+                            {
+                                <span class="bg-secondary text-on-secondary rounded-full px-3 py-1 text-xs font-medium">@interest</span>
+                            }
+                        </div>
+                    </div>
+                }
+
+                @* Dietary *@
+                @if (!string.IsNullOrWhiteSpace(_pendingConfirmation.Dietary))
+                {
+                    <div class="col-span-2 space-y-1">
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Dietary Restrictions</span>
+                        <p class="text-sm text-on-surface">@_pendingConfirmation.Dietary</p>
+                    </div>
+                }
+
+                @* Accessibility *@
+                @if (!string.IsNullOrWhiteSpace(_pendingConfirmation.Accessibility))
+                {
+                    <div class="col-span-2 space-y-1">
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Accessibility</span>
+                        <p class="text-sm text-on-surface">@_pendingConfirmation.Accessibility</p>
+                    </div>
+                }
+
+                @* Must See *@
+                @if (_pendingConfirmation.MustSee.Count > 0)
+                {
+                    <div class="col-span-2 space-y-2">
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Must See</span>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach (var place in _pendingConfirmation.MustSee)
+                            {
+                                <span class="bg-surface-container-low text-on-surface-variant border border-outline-variant/10 rounded-full px-3 py-1 text-xs font-medium">@place</span>
+                            }
+                        </div>
+                    </div>
+                }
+
+                @* Avoid *@
+                @if (_pendingConfirmation.Avoid.Count > 0)
+                {
+                    <div class="col-span-2 space-y-2">
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Avoid</span>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach (var place in _pendingConfirmation.Avoid)
+                            {
+                                <span class="bg-surface-container-low text-on-surface-variant border border-outline-variant/10 rounded-full px-3 py-1 text-xs font-medium">@place</span>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            @* Action buttons *@
+            <div class="flex items-center gap-4 pt-2">
+                <button @onclick="ConfirmTrip"
+                        disabled="@_isLoading"
+                        class="flex-1 bg-gradient-to-br from-primary to-primary-dim text-on-primary rounded-lg px-6 py-3 text-sm font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20 disabled:opacity-30 disabled:hover:scale-100">
+                    <span class="flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined text-lg">check_circle</span>
+                        Looks good, plan it
+                    </span>
+                </button>
+                <button @onclick="() => _pendingConfirmation = null"
+                        class="border border-outline-variant/20 rounded-full text-on-surface-variant px-6 py-3 text-sm font-medium hover:bg-surface-container-high transition-all">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    }
 </div>
 
 <div class="fixed bottom-0 right-0 w-[calc(100%-16rem)] p-6 bg-surface/80 backdrop-blur-md z-40">
@@ -114,6 +387,31 @@
     private bool _isLoading;
     private double _elapsedSec;
     private Timer? _timer;
+
+    // Guided form state
+    private bool _showGuidedForm;
+    private string _formDestination = "";
+    private DateTime? _formStartDate;
+    private DateTime? _formEndDate;
+    private string _formPace = "Moderate";
+    private int _formTravelers = 1;
+    private string _formBudget = "";
+    private readonly HashSet<string> _formInterests = [];
+    private string _formDietary = "";
+    private string _formAccessibility = "";
+    private string _formMustSee = "";
+    private string _formAvoid = "";
+
+    // Confirmation state
+    private TripConfirmation? _pendingConfirmation;
+    private bool _editingConfirmation;
+
+    private static readonly string[] AvailableInterests =
+    [
+        "Food & Dining", "History", "Art & Museums", "Nightlife", "Nature & Hiking",
+        "Shopping", "Architecture", "Beaches", "Adventure Sports", "Photography",
+        "Local Culture", "Live Music", "Wellness & Spa", "Markets & Street Food"
+    ];
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -150,8 +448,17 @@
 
         try
         {
-            var response = await AgentService.RunAsync(userMessage);
-            _messages.Add(new ChatMessage("assistant", response.TextContent ?? ""));
+            var result = await AgentService.RunAsync(userMessage);
+
+            if (result.Type == AgentResultType.TripConfirmation && result.Confirmation is not null)
+            {
+                _pendingConfirmation = result.Confirmation;
+                _editingConfirmation = false;
+            }
+            else
+            {
+                _messages.Add(new ChatMessage("assistant", result.TextContent ?? ""));
+            }
 
             await JS.InvokeVoidAsync("eval",
                 "if ('Notification' in window && Notification.permission === 'granted' && document.hidden) " +
@@ -167,6 +474,90 @@
             _timer = null;
             _isLoading = false;
         }
+    }
+
+    private async Task SubmitGuidedForm()
+    {
+        if (string.IsNullOrWhiteSpace(_formDestination)) return;
+
+        var parts = new List<string>
+        {
+            $"Plan a trip to {_formDestination.Trim()}."
+        };
+
+        if (_formStartDate.HasValue && _formEndDate.HasValue)
+            parts.Add($"Dates: {_formStartDate.Value:yyyy-MM-dd} to {_formEndDate.Value:yyyy-MM-dd}.");
+        else if (_formStartDate.HasValue)
+            parts.Add($"Starting {_formStartDate.Value:yyyy-MM-dd}.");
+
+        parts.Add($"{_formPace} pace.");
+
+        if (_formTravelers > 1)
+            parts.Add($"{_formTravelers} travelers.");
+
+        if (!string.IsNullOrWhiteSpace(_formBudget))
+            parts.Add($"Budget: {_formBudget}.");
+
+        if (_formInterests.Count > 0)
+            parts.Add($"Interests: {string.Join(", ", _formInterests)}.");
+
+        if (!string.IsNullOrWhiteSpace(_formDietary))
+            parts.Add($"Dietary: {_formDietary.Trim()}.");
+
+        if (!string.IsNullOrWhiteSpace(_formAccessibility))
+            parts.Add($"Accessibility: {_formAccessibility.Trim()}.");
+
+        if (!string.IsNullOrWhiteSpace(_formMustSee))
+            parts.Add($"Must see: {_formMustSee.Trim()}.");
+
+        if (!string.IsNullOrWhiteSpace(_formAvoid))
+            parts.Add($"Avoid: {_formAvoid.Trim()}.");
+
+        _showGuidedForm = false;
+        _input = string.Join(" ", parts);
+        await SendMessage();
+    }
+
+    private async Task ConfirmTrip()
+    {
+        if (_pendingConfirmation is null) return;
+
+        var conf = _pendingConfirmation;
+        var parts = new List<string>
+        {
+            $"Confirmed. Plan the trip to {conf.Destination}."
+        };
+
+        if (!string.IsNullOrWhiteSpace(conf.Dates))
+            parts.Add($"Dates: {conf.Dates}.");
+        if (!string.IsNullOrWhiteSpace(conf.Pace))
+            parts.Add($"{conf.Pace} pace.");
+        if (conf.Travelers > 1)
+            parts.Add($"{conf.Travelers} travelers.");
+        if (!string.IsNullOrWhiteSpace(conf.Budget))
+            parts.Add($"Budget: {conf.Budget}.");
+        if (conf.Interests.Count > 0)
+            parts.Add($"Interests: {string.Join(", ", conf.Interests)}.");
+        if (!string.IsNullOrWhiteSpace(conf.Dietary))
+            parts.Add($"Dietary: {conf.Dietary}.");
+        if (!string.IsNullOrWhiteSpace(conf.Accessibility))
+            parts.Add($"Accessibility: {conf.Accessibility}.");
+        if (conf.MustSee.Count > 0)
+            parts.Add($"Must see: {string.Join(", ", conf.MustSee)}.");
+        if (conf.Avoid.Count > 0)
+            parts.Add($"Avoid: {string.Join(", ", conf.Avoid)}.");
+
+        parts.Add("Please create the full itinerary now with calendar events.");
+
+        _pendingConfirmation = null;
+        _input = string.Join(" ", parts);
+        await SendMessage();
+    }
+
+    private void ToggleInterest(string interest)
+    {
+        if (!_formInterests.Remove(interest))
+            _formInterests.Add(interest);
     }
 
     private static string FormatElapsed(double sec)
