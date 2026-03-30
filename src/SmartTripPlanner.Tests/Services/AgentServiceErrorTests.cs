@@ -61,7 +61,7 @@ public class AgentServiceErrorTests
 
         var result = await _sut.RunAsync("Check my calendar");
 
-        Assert.Equal("Sorry, calendar is unavailable.", result);
+        Assert.Equal("Sorry, calendar is unavailable.", result.TextContent);
     }
 
     [Fact]
@@ -72,8 +72,8 @@ public class AgentServiceErrorTests
 
         var result = await _sut.RunAsync("Plan a trip");
 
-        Assert.Contains("LLM", result);
-        Assert.Contains("unavailable", result, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("LLM", result.TextContent!);
+        Assert.Contains("unavailable", result.TextContent!, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -109,6 +109,6 @@ public class AgentServiceErrorTests
 
         var result = await _sut.RunAsync("Check calendar");
 
-        Assert.Equal("Let me try valid dates.", result);
+        Assert.Equal("Let me try valid dates.", result.TextContent);
     }
 }

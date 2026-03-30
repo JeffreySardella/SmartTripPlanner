@@ -67,7 +67,7 @@ public class AgentServicePersistenceTests
 
         var result = await sut.RunAsync("Plan a day in Paris");
 
-        Assert.Equal("Event added!", result);
+        Assert.Equal("Event added!", result.TextContent);
         await persistenceService.Received(1).AddTripEventAsync(
             Arg.Any<int>(), Arg.Is("Visit Eiffel Tower"), Arg.Is("Champ de Mars, Paris"),
             Arg.Any<double>(), Arg.Any<double>(), Arg.Any<DateTime>(), Arg.Any<DateTime>(), Arg.Is("cal-event-123"));

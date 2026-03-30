@@ -24,7 +24,7 @@ public class TripControllerTests
     public async Task PlanTrip_Success_ReturnsOkWithResponse()
     {
         _agentService.RunAsync(Arg.Any<string>(), Arg.Any<int>())
-            .Returns("Here is your trip plan.");
+            .Returns(AgentResult.Text("Here is your trip plan."));
 
         var result = await _sut.PlanTrip(new TripRequest { Prompt = "Plan Tokyo" });
 

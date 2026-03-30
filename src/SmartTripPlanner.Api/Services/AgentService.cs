@@ -73,15 +73,25 @@ public class AgentService(
         }
     }
 
-    public Task<string> RunAsync(string userRequest, int maxIterations = 10)
+    public Task<AgentResult> RunAsync(string userRequest, int maxIterations = 10)
         => RunAsync(userRequest, _ => { }, maxIterations);
 
-    public async Task<string> RunAsync(string userRequest, Action<AgentProgress> onProgress, int maxIterations = 10)
+    public async Task<AgentResult> RunAsync(string userRequest, Action<AgentProgress> onProgress, int maxIterations = 10)
     {
         var sw = System.Diagnostics.Stopwatch.StartNew();
+
+        var preferences = await persistenceService.GetPreferencesAsync() ?? [];
+        var promptWithPrefs = SystemPrompt;
+        if (preferences.Count > 0)
+        {
+            var prefsBlock = string.Join("\n", preferences.Select(p =>
+                $"{p.Key}: {p.Value} ({(p.Source == "user" ? "set by you" : "learned")})"));
+            promptWithPrefs += $"\n\n[USER PREFERENCES]\n{prefsBlock}";
+        }
+
         var messages = new List<LlmMessage>
         {
-            new() { Role = "system", Content = SystemPrompt },
+            new() { Role = "system", Content = promptWithPrefs },
             new() { Role = "user", Content = userRequest }
         };
 
@@ -106,7 +116,7 @@ public class AgentService(
             catch (LlmUnavailableException ex)
             {
                 logger.LogError(ex, "LLM service is unavailable");
-                return $"LLM service is unavailable: {ex.Message}";
+                return AgentResult.Text($"LLM service is unavailable: {ex.Message}");
             }
 
             var message = response.Message;
@@ -119,7 +129,7 @@ public class AgentService(
                     Iteration = i + 1, MaxIterations = maxIterations,
                     Status = "Done", ElapsedSec = sw.Elapsed.TotalSeconds
                 });
-                return message.Content ?? string.Empty;
+                return AgentResult.Text(message.Content ?? string.Empty);
             }
 
             // Add assistant message with tool calls to history
@@ -128,6 +138,37 @@ public class AgentService(
             // Execute each tool call
             foreach (var toolCall in message.ToolCalls)
             {
+                if (toolCall.Function.Name == "confirm_trip")
+                {
+                    onProgress(new AgentProgress
+                    {
+                        Iteration = i + 1, MaxIterations = maxIterations,
+                        Status = "Awaiting confirmation", ToolName = "confirm_trip",
+                        ElapsedSec = sw.Elapsed.TotalSeconds
+                    });
+
+                    var ctArgs = toolCall.Function.Arguments;
+                    var confirmation = new TripConfirmation
+                    {
+                        Destination = ctArgs["destination"].ToString()!,
+                        Dates = ctArgs.GetStringOrDefault("dates"),
+                        Pace = ctArgs.GetStringOrDefault("pace"),
+                        Travelers = ctArgs.GetIntOrDefault("travelers", 1),
+                        Budget = ctArgs.GetStringOrDefault("budget"),
+                        Dietary = ctArgs.GetStringOrDefault("dietary"),
+                        Accessibility = ctArgs.GetStringOrDefault("accessibility"),
+                    };
+
+                    if (ctArgs.TryGetValue("interests", out var interestsVal) && interestsVal is JsonElement je && je.ValueKind == JsonValueKind.Array)
+                        confirmation.Interests = je.EnumerateArray().Select(e => e.GetString()!).ToList();
+                    if (ctArgs.TryGetValue("must_see", out var mustSeeVal) && mustSeeVal is JsonElement ms && ms.ValueKind == JsonValueKind.Array)
+                        confirmation.MustSee = ms.EnumerateArray().Select(e => e.GetString()!).ToList();
+                    if (ctArgs.TryGetValue("avoid", out var avoidVal) && avoidVal is JsonElement av && av.ValueKind == JsonValueKind.Array)
+                        confirmation.Avoid = av.EnumerateArray().Select(e => e.GetString()!).ToList();
+
+                    return AgentResult.Confirm(confirmation);
+                }
+
                 var friendlyName = toolCall.Function.Name switch
                 {
                     "get_calendar_view" => "Checking calendar",
@@ -139,6 +180,10 @@ public class AgentService(
                     "get_trip" => "Loading trip details",
                     "search_restaurants" => "Finding restaurants nearby",
                     "search_hotels" => "Finding hotels nearby",
+                    "confirm_trip" => "Parsing your request",
+                    "save_preference" => "Saving preference",
+                    "delete_preference" => "Removing preference",
+                    "get_user_choice_history" => "Reviewing your travel patterns",
                     _ => toolCall.Function.Name
                 };
 
@@ -171,7 +216,7 @@ public class AgentService(
             }
         }
 
-        return "Agent reached max iterations without completing. Please try a more specific request.";
+        return AgentResult.Text("Agent reached max iterations without completing. Please try a more specific request.");
     }
 
     private async Task<object> ExecuteToolAsync(LlmToolCall toolCall, int? currentRunTripId, Action<int> setTripId)
@@ -216,6 +261,10 @@ public class AgentService(
                 args.GetDouble("longitude"),
                 args.GetIntOrDefault("radius_meters", 5000),
                 args.GetIntOrDefault("limit", 10)),
+
+            "save_preference" => await SavePreferenceToolAsync(args),
+            "delete_preference" => await DeletePreferenceToolAsync(args),
+            "get_user_choice_history" => await persistenceService.GetUserChoiceHistoryAsync(),
 
             _ => new { error = $"Unknown tool: {toolCall.Function.Name}" }
         };
@@ -329,5 +378,23 @@ public class AgentService(
                 e.CalendarEventId
             })
         };
+    }
+
+    private async Task<object> SavePreferenceToolAsync(Dictionary<string, object> args)
+    {
+        var key = args["key"].ToString()!;
+        var value = args["value"].ToString()!;
+        var source = args.GetStringOrDefault("source") ?? "learned";
+        await persistenceService.SavePreferenceAsync(key, value, source);
+        return new { success = true, key, value, source };
+    }
+
+    private async Task<object> DeletePreferenceToolAsync(Dictionary<string, object> args)
+    {
+        var key = args["key"].ToString()!;
+        var deleted = await persistenceService.DeletePreferenceAsync(key);
+        return deleted
+            ? new { success = true, message = $"Preference '{key}' deleted" }
+            : (object)new { success = false, message = $"Preference '{key}' not found" };
     }
 }

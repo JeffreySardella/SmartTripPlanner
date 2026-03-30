@@ -1,9 +1,11 @@
 namespace SmartTripPlanner.Api.Services;
 
+using SmartTripPlanner.Api.Models;
+
 public interface IAgentService
 {
-    Task<string> RunAsync(string userRequest, int maxIterations = 10);
-    Task<string> RunAsync(string userRequest, Action<AgentProgress> onProgress, int maxIterations = 10);
+    Task<AgentResult> RunAsync(string userRequest, int maxIterations = 10);
+    Task<AgentResult> RunAsync(string userRequest, Action<AgentProgress> onProgress, int maxIterations = 10);
 }
 
 public class AgentProgress

@@ -36,7 +36,7 @@ public class AgentServiceTests
 
         var result = await _sut.RunAsync("Plan a trip");
 
-        Assert.Equal("Here is your plan.", result);
+        Assert.Equal("Here is your plan.", result.TextContent);
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public class AgentServiceTests
 
         var result = await _sut.RunAsync("Am I free March 10-12?");
 
-        Assert.Equal("You're free all day!", result);
+        Assert.Equal("You're free all day!", result.TextContent);
         await _calendarService.Received(1).GetCalendarViewAsync(Arg.Any<DateTime>(), Arg.Any<DateTime>());
     }
 
@@ -107,7 +107,7 @@ public class AgentServiceTests
 
         var result = await _sut.RunAsync("Plan Tokyo trip", maxIterations: 3);
 
-        Assert.Contains("max iterations", result, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("max iterations", result.TextContent!, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -149,7 +149,7 @@ public class AgentServiceTests
 
         var result = await _sut.RunAsync("What's in Tokyo?");
 
-        Assert.Equal("Found Tokyo Tower!", result);
+        Assert.Equal("Found Tokyo Tower!", result.TextContent);
         await _persistenceService.Received(1).SearchCachedLocationsAsync("Tokyo", null);
     }
 }

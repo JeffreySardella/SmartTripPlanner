@@ -151,7 +151,7 @@
         try
         {
             var response = await AgentService.RunAsync(userMessage);
-            _messages.Add(new ChatMessage("assistant", response));
+            _messages.Add(new ChatMessage("assistant", response.TextContent ?? ""));
 
             await JS.InvokeVoidAsync("eval",
                 "if ('Notification' in window && Notification.permission === 'granted' && document.hidden) " +
